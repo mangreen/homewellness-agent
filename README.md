@@ -10,7 +10,8 @@ This repository is a live-demo PoC. It runs offline. It needs no API key.
 
 | Phase | Content | State |
 | --- | --- | --- |
-| 1 | Foundation, Domain, Application (in-memory) | Done, waiting for review |
+| 1 | Foundation, models, controllers (in-memory) | Done |
+| 1b | Refactor from DDD layers to MVC | Done |
 | 2 | DynamoDB, MQTT, device simulator | Not started |
 | 3 | Agent, API | Not started |
 | 4 | Demo UI | Not started |
@@ -32,8 +33,9 @@ The first build needs network access. After that, the stack runs offline.
 
 ## Architecture
 
-See `docs/architecture/domain-model.md`. Layers: Domain, Application, Infrastructure.
-Each external system sits behind a port. The PoC uses these stand-ins:
+MVC. See `docs/architecture/mvc-overview.md`. Models hold data and rules. Controllers take an input and
+run the flow. Views format the output. Stores and services sit behind small interfaces.
+The PoC uses these stand-ins:
 
 | PoC | Real product |
 | --- | --- |

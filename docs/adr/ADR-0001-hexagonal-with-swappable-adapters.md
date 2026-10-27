@@ -1,7 +1,9 @@
 # ADR-0001: Hexagonal Architecture with Swappable Adapters
 
+DEPRECATED: Superseded by [ADR-0002](ADR-0002-lightweight-mvc.md). Read it for history only.
+
 Date: 2026-10-27
-Status: Accepted (short form. Expand after the demo.)
+Status: Superseded by ADR-0002-lightweight-mvc.md (2026-10-28)
 
 ## Context
 The demo must run offline. The real product uses AWS and a real LLM.
