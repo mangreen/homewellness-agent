@@ -1,0 +1,24 @@
+[tool.pytest.ini_options]
+pythonpath = ["src", "tests"]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "concurrency: tests that run many callers at the same time",
+]
+
+[tool.coverage.run]
+source = ["homewellness.domain", "homewellness.application"]
+branch = true
+
+[tool.coverage.report]
+# Coverage gate applies to the Domain and Application layers only.
+fail_under = 80
+show_missing = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
