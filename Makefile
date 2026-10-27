@@ -17,11 +17,13 @@ logs:
 
 test:
 	test -f .env || cp .env.example .env
-	docker compose --profile test run --rm --build test
+	docker compose --profile test build test
+	docker compose --profile test run --rm test
 
 lint:
 	test -f .env || cp .env.example .env
-	docker compose --profile test run --rm --build test ruff check .
+	docker compose --profile test build test
+	docker compose --profile test run --rm test ruff check .
 
 # Save images for offline restore: docker load -i dist/homewellness-images.tar
 offline-bundle:
