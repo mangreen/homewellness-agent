@@ -65,7 +65,7 @@ classDiagram
 | `assess_blood_pressure` | BloodPressure, thresholds | AlertLevel (LOW, NORMAL, ELEVATED, HIGH, CRITICAL) |
 | `decide_escalation` | AlertLevel or None, symptoms | EscalationDecision (NONE, NOTIFY_FAMILY, CALL_EMERGENCY) |
 | `dose_states` | schedule, taken dose ids, local time | state per dose (UPCOMING, DUE, TAKEN, MISSED) |
-| `resolve_intake` | schedule, taken dose ids, local time | which dose to record, or ALREADY_TAKEN, or NO_DOSE_DUE |
+| `resolve_intake` | schedule, taken dose ids, local time | which dose to record, or ALREADY_TAKEN, or NO_DOSE_DUE. Checks only the most recent recordable dose. |
 | `evaluate_triggers` | local time, schedule, vitals, sleep | list of ProactiveTrigger |
 
 All thresholds are demo values. A clinician must review them before real use.
@@ -101,3 +101,9 @@ flowchart LR
 - Phase 1 is new code. No upstream or downstream code exists yet.
 - Phase 2 adds DynamoDB and MQTT adapters. They must pass the same port contracts as the in-memory adapters.
 - Phase 3 adds the agent tools. Each tool calls one use case. No tool calls a repository directly.
+
+## Concurrency contract (all adapters)
+
+- `IntakeRepository.add` is atomic. It returns False if the dose is already stored for that date.
+- `ClaimStore.try_claim` is atomic. Only the first caller gets True.
+- `EscalateEmergency` frees its claim when the notifier fails, so a retry can send the alert.
