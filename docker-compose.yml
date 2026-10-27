@@ -22,12 +22,16 @@ services:
     ports:
       - "8000:8000"
     # NOTE: No healthcheck. The image has no guaranteed shell tools.
-    # Phase 2 adds connection retry in the DynamoDB adapter.
+    # The worker and the tests retry the connection while DynamoDB starts.
 
   app:
     build: .
     env_file:
       - .env
+    environment:
+      # FIXME: Local emulator only. Use an IAM role in AWS. Never commit real keys.
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-changeme}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-changeme}
     ports:
       - "8001:8000"
     volumes:
@@ -37,6 +41,7 @@ services:
         condition: service_healthy
       dynamodb:
         condition: service_started
+    # Healthy means: connected to the broker and subscribed to the topics.
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/healthz')"]
       interval: 5s
@@ -50,3 +55,23 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
+
+  itest:
+    # Integration tests against Mosquitto and DynamoDB Local. Run with: make itest
+    build: .
+    profiles: ["test"]
+    command: ["pytest", "-m", "integration", "-v"]
+    env_file:
+      - .env
+    environment:
+      # FIXME: Local emulator only. Use an IAM role in AWS. Never commit real keys.
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-changeme}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-changeme}
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      dynamodb:
+        condition: service_started
