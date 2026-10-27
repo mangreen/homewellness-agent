@@ -8,11 +8,11 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["homewellness.domain", "homewellness.application"]
+source = ["homewellness.models", "homewellness.controllers", "homewellness.views"]
 branch = true
 
 [tool.coverage.report]
-# Coverage gate applies to the Domain and Application layers only.
+# Coverage gate applies to models, controllers and views. Stores and services have contract tests.
 fail_under = 80
 show_missing = true
 

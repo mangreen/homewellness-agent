@@ -3,9 +3,9 @@
 from datetime import UTC, date, datetime, time
 from zoneinfo import ZoneInfo
 
-from homewellness.domain.elder import ElderProfile
-from homewellness.domain.medication import Dose, MedicationSchedule
-from homewellness.domain.vitals import BloodPressure, SleepSummary, VitalsSnapshot
+from homewellness.models.elder import ElderProfile
+from homewellness.models.medication import Dose, MedicationSchedule
+from homewellness.models.vitals import BloodPressure, SleepSummary, VitalsSnapshot
 
 TAIPEI = ZoneInfo("Asia/Taipei")
 ELDER_ID = "elder-001"

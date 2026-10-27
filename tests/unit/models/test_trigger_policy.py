@@ -3,8 +3,8 @@ from datetime import date, timedelta
 import pytest
 
 from builders import make_schedule, make_sleep, make_vitals, taipei
-from homewellness.domain.alert_policy import AlertLevel
-from homewellness.domain.trigger_policy import TriggerKind, evaluate_triggers
+from homewellness.models.alert_policy import AlertLevel
+from homewellness.models.trigger_policy import TriggerKind, evaluate_triggers
 
 
 def run(local_now, taken=frozenset(), vitals=None, sleep=None):

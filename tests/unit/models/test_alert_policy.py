@@ -1,14 +1,14 @@
 import pytest
 
-from homewellness.domain.alert_policy import (
+from homewellness.models.alert_policy import (
     AlertLevel,
     AlertThresholds,
     EscalationAction,
     assess_blood_pressure,
     decide_escalation,
 )
-from homewellness.domain.symptoms import Symptom
-from homewellness.domain.vitals import BloodPressure
+from homewellness.models.symptoms import Symptom
+from homewellness.models.vitals import BloodPressure
 
 L, N, E, H, C = (AlertLevel.LOW, AlertLevel.NORMAL, AlertLevel.ELEVATED, AlertLevel.HIGH,
                  AlertLevel.CRITICAL)

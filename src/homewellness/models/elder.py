@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from homewellness.domain.errors import InvalidScheduleError
-from homewellness.domain.medication import MedicationSchedule
+from homewellness.models.errors import InvalidScheduleError
+from homewellness.models.medication import MedicationSchedule
 
 
 @dataclass(frozen=True, slots=True)

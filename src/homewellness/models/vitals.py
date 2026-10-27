@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
-from homewellness.domain.errors import InvalidVitalsError
+from homewellness.models.errors import InvalidVitalsError
 
 # A reading older than this is not used for safety decisions.
 DEFAULT_VITALS_MAX_AGE = timedelta(minutes=30)

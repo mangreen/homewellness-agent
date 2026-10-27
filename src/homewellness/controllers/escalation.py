@@ -1,24 +1,24 @@
-"""Use case: alert family or emergency contacts. The policy decides, not the LLM."""
+"""Controller: alert family or emergency contacts. The policy decides, not the LLM."""
 
 from dataclasses import dataclass
 from enum import StrEnum
 
-from homewellness.application.messages import compose_notification
-from homewellness.application.ports import (
+from homewellness.interfaces import (
     ClaimStore,
     Clock,
-    ElderRepository,
+    ElderStore,
     Notifier,
-    TelemetryRepository,
+    TelemetryStore,
 )
-from homewellness.domain.alert_policy import (
+from homewellness.models.alert_policy import (
     AlertLevel,
     EscalationAction,
     EscalationDecision,
     assess_blood_pressure,
     decide_escalation,
 )
-from homewellness.domain.symptoms import Symptom
+from homewellness.models.symptoms import Symptom
+from homewellness.views.notifications import compose_notification
 
 
 class EscalationStatus(StrEnum):
@@ -33,12 +33,12 @@ class EscalationOutcome:
     decision: EscalationDecision
 
 
-class EscalateEmergency:
+class EscalationController:
     def __init__(
         self,
         *,
-        elders: ElderRepository,
-        telemetry: TelemetryRepository,
+        elders: ElderStore,
+        telemetry: TelemetryStore,
         claims: ClaimStore,
         notifier: Notifier,
         clock: Clock,
@@ -49,7 +49,7 @@ class EscalateEmergency:
         self._notifier = notifier
         self._clock = clock
 
-    def execute(
+    def escalate(
         self, elder_id: str, symptoms: frozenset[Symptom], idempotency_key: str
     ) -> EscalationOutcome:
         profile = self._elders.get(elder_id)

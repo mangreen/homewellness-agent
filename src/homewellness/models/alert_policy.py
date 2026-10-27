@@ -6,8 +6,8 @@ NOTE: All thresholds are demo values. A clinician must review them before real u
 from dataclasses import dataclass
 from enum import StrEnum
 
-from homewellness.domain.symptoms import RED_FLAG_SYMPTOMS, Symptom
-from homewellness.domain.vitals import BloodPressure
+from homewellness.models.symptoms import RED_FLAG_SYMPTOMS, Symptom
+from homewellness.models.vitals import BloodPressure
 
 
 class AlertLevel(StrEnum):

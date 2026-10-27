@@ -2,11 +2,11 @@
 
 from datetime import datetime
 
-from homewellness.application.models import Notification, Recipient
-from homewellness.domain.alert_policy import EscalationAction, EscalationDecision
-from homewellness.domain.elder import ElderProfile
-from homewellness.domain.symptoms import Symptom
-from homewellness.domain.vitals import BloodPressure
+from homewellness.models.alert_policy import EscalationAction, EscalationDecision
+from homewellness.models.elder import ElderProfile
+from homewellness.models.interaction import Notification, Recipient
+from homewellness.models.symptoms import Symptom
+from homewellness.models.vitals import BloodPressure
 
 _SYMPTOM_TEXT = {
     Symptom.DIZZINESS: "頭暈",

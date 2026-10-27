@@ -2,15 +2,15 @@
 
 from datetime import datetime
 
-from homewellness.application.models import DoseStatus, HealthContext
-from homewellness.application.ports import IntakeRepository, TelemetryRepository
-from homewellness.domain.alert_policy import assess_blood_pressure
-from homewellness.domain.elder import ElderProfile
-from homewellness.domain.medication import dose_states
+from homewellness.interfaces import IntakeStore, TelemetryStore
+from homewellness.models.alert_policy import assess_blood_pressure
+from homewellness.models.elder import ElderProfile
+from homewellness.models.interaction import DoseStatus, HealthContext
+from homewellness.models.medication import dose_states
 
 
 def taken_dose_ids(
-    intakes: IntakeRepository, profile: ElderProfile, local_now: datetime
+    intakes: IntakeStore, profile: ElderProfile, local_now: datetime
 ) -> frozenset[str]:
     stored = intakes.list_for_date(profile.elder_id, local_now.date())
     return frozenset(intake.dose_id for intake in stored)
@@ -19,8 +19,8 @@ def taken_dose_ids(
 def build_health_context(
     *,
     profile: ElderProfile,
-    telemetry: TelemetryRepository,
-    intakes: IntakeRepository,
+    telemetry: TelemetryStore,
+    intakes: IntakeStore,
     now: datetime,
 ) -> HealthContext:
     local_now = profile.local_now(now)

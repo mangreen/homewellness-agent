@@ -1,12 +1,12 @@
-"""Ports. The Application layer depends on these interfaces only."""
+"""Interfaces for what we may swap: stores, clock, notifier and agent."""
 
 from datetime import date, datetime
 from typing import Protocol
 
-from homewellness.application.models import AgentRequest, ConversationTurn, Notification
-from homewellness.domain.elder import ElderProfile
-from homewellness.domain.medication import MedicationIntake
-from homewellness.domain.vitals import SleepSummary, VitalsSnapshot
+from homewellness.models.elder import ElderProfile
+from homewellness.models.interaction import AgentRequest, ConversationTurn, Notification
+from homewellness.models.medication import MedicationIntake
+from homewellness.models.vitals import SleepSummary, VitalsSnapshot
 
 
 class Clock(Protocol):
@@ -14,19 +14,19 @@ class Clock(Protocol):
         """Return the current time. The value must have a time zone."""
 
 
-class ElderRepository(Protocol):
+class ElderStore(Protocol):
     def get(self, elder_id: str) -> ElderProfile:
         """Return the profile. Raise ElderNotFoundError if it does not exist."""
 
 
-class TelemetryRepository(Protocol):
+class TelemetryStore(Protocol):
     def save_vitals(self, snapshot: VitalsSnapshot) -> None: ...
     def latest_vitals(self, elder_id: str) -> VitalsSnapshot | None: ...
     def save_sleep(self, summary: SleepSummary) -> None: ...
     def latest_sleep(self, elder_id: str) -> SleepSummary | None: ...
 
 
-class IntakeRepository(Protocol):
+class IntakeStore(Protocol):
     def add(self, intake: MedicationIntake) -> bool:
         """Store the intake. Return False if the same dose is already stored for that date.
 
@@ -50,7 +50,7 @@ class Notifier(Protocol):
     def send(self, notification: Notification) -> None: ...
 
 
-class ConversationRepository(Protocol):
+class ConversationStore(Protocol):
     def append(self, elder_id: str, turn: ConversationTurn) -> None: ...
     def recent(self, elder_id: str, limit: int) -> list[ConversationTurn]:
         """Return the latest turns, oldest first."""

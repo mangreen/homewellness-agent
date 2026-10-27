@@ -1,8 +1,8 @@
-"""Use case: the elder says that they took their medicine."""
+"""Controller: the elder says that they took their medicine."""
 
-from homewellness.application.health_context import taken_dose_ids
-from homewellness.application.ports import Clock, ElderRepository, IntakeRepository
-from homewellness.domain.medication import (
+from homewellness.controllers.health_context import taken_dose_ids
+from homewellness.interfaces import Clock, ElderStore, IntakeStore
+from homewellness.models.medication import (
     IntakeResolution,
     IntakeStatus,
     MedicationIntake,
@@ -10,15 +10,15 @@ from homewellness.domain.medication import (
 )
 
 
-class RecordMedicationIntake:
+class MedicationController:
     def __init__(
-        self, *, elders: ElderRepository, intakes: IntakeRepository, clock: Clock
+        self, *, elders: ElderStore, intakes: IntakeStore, clock: Clock
     ) -> None:
         self._elders = elders
         self._intakes = intakes
         self._clock = clock
 
-    def execute(self, elder_id: str) -> IntakeResolution:
+    def record_intake(self, elder_id: str) -> IntakeResolution:
         profile = self._elders.get(elder_id)
         now = self._clock.now()
         local_now = profile.local_now(now)

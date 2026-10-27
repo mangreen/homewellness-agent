@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
-from homewellness.domain.alert_policy import AlertLevel, EscalationAction
-from homewellness.domain.medication import Dose, DoseState
-from homewellness.domain.vitals import SleepSummary, VitalsSnapshot
+from homewellness.models.alert_policy import AlertLevel, EscalationAction
+from homewellness.models.medication import Dose, DoseState
+from homewellness.models.vitals import SleepSummary, VitalsSnapshot
 
 
 class Recipient(StrEnum):

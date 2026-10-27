@@ -2,8 +2,8 @@ from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
-from homewellness.domain.errors import InvalidVitalsError
-from homewellness.domain.vitals import BloodPressure, SleepSummary, VitalsSnapshot
+from homewellness.models.errors import InvalidVitalsError
+from homewellness.models.vitals import BloodPressure, SleepSummary, VitalsSnapshot
 
 NOW = datetime(2026, 10, 27, 0, 0, tzinfo=UTC)
 

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from enum import StrEnum
 
-from homewellness.domain.errors import InvalidScheduleError
+from homewellness.models.errors import InvalidScheduleError
 
 # A dose is DUE from its scheduled time until this window ends. Then it is MISSED.
 DUE_WINDOW = timedelta(hours=2)

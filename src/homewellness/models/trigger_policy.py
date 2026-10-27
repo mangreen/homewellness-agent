@@ -1,21 +1,21 @@
 """Rules that decide when the agent starts a conversation. Pure. No I/O.
 
 The policy returns every trigger that applies now. It does not remember what it
-sent. The Application layer removes duplicates with the `dedup_key`.
+sent. The controller removes duplicates with the `dedup_key`.
 """
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
 
-from homewellness.domain.alert_policy import (
+from homewellness.models.alert_policy import (
     DEFAULT_THRESHOLDS,
     AlertLevel,
     AlertThresholds,
     assess_blood_pressure,
 )
-from homewellness.domain.medication import Dose, DoseState, MedicationSchedule, dose_states
-from homewellness.domain.vitals import (
+from homewellness.models.medication import Dose, DoseState, MedicationSchedule, dose_states
+from homewellness.models.vitals import (
     DEFAULT_VITALS_MAX_AGE,
     BloodPressure,
     SleepSummary,

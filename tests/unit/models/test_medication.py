@@ -3,8 +3,8 @@ from datetime import UTC, time
 import pytest
 
 from builders import make_profile, make_schedule, taipei
-from homewellness.domain.errors import InvalidScheduleError
-from homewellness.domain.medication import (
+from homewellness.models.errors import InvalidScheduleError
+from homewellness.models.medication import (
     Dose,
     DoseState,
     IntakeStatus,

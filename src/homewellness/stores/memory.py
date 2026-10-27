@@ -1,36 +1,20 @@
-"""In-memory adapters. They serve unit tests and the offline fallback.
+"""In-memory stores. They serve unit tests and the offline fallback.
 
-NOTE: Every adapter is thread-safe. Real adapters must keep the same contracts.
+NOTE: Every store is thread-safe. Real stores must keep the same contracts.
 """
 
 import threading
 from collections import defaultdict
-from datetime import UTC, date, datetime
+from datetime import date
 
-from homewellness.application.models import ConversationTurn, Notification
-from homewellness.domain.elder import ElderProfile
-from homewellness.domain.errors import ElderNotFoundError
-from homewellness.domain.medication import MedicationIntake
-from homewellness.domain.vitals import SleepSummary, VitalsSnapshot
-
-
-class SystemClock:
-    def now(self) -> datetime:
-        return datetime.now(UTC)
+from homewellness.models.elder import ElderProfile
+from homewellness.models.errors import ElderNotFoundError
+from homewellness.models.interaction import ConversationTurn
+from homewellness.models.medication import MedicationIntake
+from homewellness.models.vitals import SleepSummary, VitalsSnapshot
 
 
-class FixedClock:
-    def __init__(self, now: datetime) -> None:
-        self._now = now
-
-    def now(self) -> datetime:
-        return self._now
-
-    def set(self, now: datetime) -> None:
-        self._now = now
-
-
-class InMemoryElderRepository:
+class InMemoryElderStore:
     def __init__(self, profiles: list[ElderProfile]) -> None:
         self._profiles = {p.elder_id: p for p in profiles}
 
@@ -41,7 +25,7 @@ class InMemoryElderRepository:
             raise ElderNotFoundError(f"elder not found: {elder_id}") from None
 
 
-class InMemoryTelemetryRepository:
+class InMemoryTelemetryStore:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._vitals: dict[str, VitalsSnapshot] = {}
@@ -69,7 +53,7 @@ class InMemoryTelemetryRepository:
             return self._sleep.get(elder_id)
 
 
-class InMemoryIntakeRepository:
+class InMemoryIntakeStore:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._items: dict[tuple[str, date, str], MedicationIntake] = {}
@@ -104,23 +88,7 @@ class InMemoryClaimStore:
             self._keys.discard(key)
 
 
-class RecordingNotifier:
-    """Keeps sent notifications in a list. The demo UI reads this list."""
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self.sent: list[Notification] = []
-        self.fail_next = False  # Test hook: the next send raises once.
-
-    def send(self, notification: Notification) -> None:
-        with self._lock:
-            if self.fail_next:
-                self.fail_next = False
-                raise RuntimeError("notifier unavailable")
-            self.sent.append(notification)
-
-
-class InMemoryConversationRepository:
+class InMemoryConversationStore:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._turns: dict[str, list[ConversationTurn]] = defaultdict(list)

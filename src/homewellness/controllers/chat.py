@@ -1,29 +1,29 @@
-"""Use case: answer a message from the elder through the agent."""
+"""Controller: answer a message from the elder through the agent."""
 
-from homewellness.application.health_context import build_health_context
-from homewellness.application.models import AgentRequest, ConversationTurn, Role
-from homewellness.application.ports import (
+from homewellness.controllers.health_context import build_health_context
+from homewellness.interfaces import (
     AgentRunner,
     Clock,
-    ConversationRepository,
-    ElderRepository,
-    IntakeRepository,
-    TelemetryRepository,
+    ConversationStore,
+    ElderStore,
+    IntakeStore,
+    TelemetryStore,
 )
-from homewellness.domain.errors import EmptyMessageError
+from homewellness.models.errors import EmptyMessageError
+from homewellness.models.interaction import AgentRequest, ConversationTurn, Role
 
 # NOTE: Short history keeps the agent focused and the prompt small.
 HISTORY_LIMIT = 10
 
 
-class HandleElderMessage:
+class ChatController:
     def __init__(
         self,
         *,
-        elders: ElderRepository,
-        telemetry: TelemetryRepository,
-        intakes: IntakeRepository,
-        conversations: ConversationRepository,
+        elders: ElderStore,
+        telemetry: TelemetryStore,
+        intakes: IntakeStore,
+        conversations: ConversationStore,
         agent: AgentRunner,
         clock: Clock,
     ) -> None:
@@ -34,7 +34,7 @@ class HandleElderMessage:
         self._agent = agent
         self._clock = clock
 
-    def execute(self, elder_id: str, text: str) -> str:
+    def reply(self, elder_id: str, text: str) -> str:
         message = text.strip()
         if not message:
             raise EmptyMessageError("message has no text")

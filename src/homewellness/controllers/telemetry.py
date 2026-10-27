@@ -1,27 +1,27 @@
-"""Use case: store a device reading (if any) and find new proactive triggers."""
+"""Controller: store a device reading (if any) and find new proactive triggers."""
 
-from homewellness.application.health_context import taken_dose_ids
-from homewellness.application.ports import (
+from homewellness.controllers.health_context import taken_dose_ids
+from homewellness.interfaces import (
     ClaimStore,
     Clock,
-    ElderRepository,
-    IntakeRepository,
-    TelemetryRepository,
+    ElderStore,
+    IntakeStore,
+    TelemetryStore,
 )
-from homewellness.domain.errors import DomainError
-from homewellness.domain.trigger_policy import ProactiveTrigger, evaluate_triggers
-from homewellness.domain.vitals import SleepSummary, VitalsSnapshot
+from homewellness.models.errors import DomainError
+from homewellness.models.trigger_policy import ProactiveTrigger, evaluate_triggers
+from homewellness.models.vitals import SleepSummary, VitalsSnapshot
 
 Reading = VitalsSnapshot | SleepSummary
 
 
-class EvaluateTelemetry:
+class TelemetryController:
     def __init__(
         self,
         *,
-        elders: ElderRepository,
-        telemetry: TelemetryRepository,
-        intakes: IntakeRepository,
+        elders: ElderStore,
+        telemetry: TelemetryStore,
+        intakes: IntakeStore,
         claims: ClaimStore,
         clock: Clock,
     ) -> None:
@@ -31,7 +31,7 @@ class EvaluateTelemetry:
         self._claims = claims
         self._clock = clock
 
-    def execute(self, elder_id: str, reading: Reading | None = None) -> list[ProactiveTrigger]:
+    def ingest(self, elder_id: str, reading: Reading | None = None) -> list[ProactiveTrigger]:
         """Run with a reading (device event) or without one (scheduled tick)."""
         profile = self._elders.get(elder_id)
         if reading is not None and reading.elder_id != elder_id:
