@@ -1,0 +1,22 @@
+# Secrets: never commit
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Offline image bundle
+dist/
