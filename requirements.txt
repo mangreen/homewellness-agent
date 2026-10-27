@@ -1,2 +1,5 @@
-# Runtime dependencies. Phase 1 needs only the time zone database.
+# Runtime dependencies (pinned).
 tzdata==2026.5
+boto3==1.43.119
+paho-mqtt==2.1.0
+pydantic==2.14.1

@@ -2,9 +2,10 @@
 pythonpath = ["src", "tests"]
 testpaths = ["tests"]
 python_functions = ["should_*"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not integration'"
 markers = [
     "concurrency: tests that run many callers at the same time",
+    "integration: needs DynamoDB and MQTT (run with `make itest`)",
 ]
 
 [tool.coverage.run]
