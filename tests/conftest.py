@@ -20,3 +20,11 @@ def dynamo_table():
     table = DynamoTable("homewellness-test", endpoint_url=endpoint, region_name="ap-northeast-1")
     table.ensure_table()
     return table
+
+
+@pytest.fixture
+def broker():
+    host = os.environ.get("MQTT_HOST")
+    if not host:
+        pytest.skip("MQTT_HOST is not set")
+    return host, int(os.environ.get("MQTT_PORT", "1883"))

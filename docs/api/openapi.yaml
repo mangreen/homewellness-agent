@@ -1,0 +1,503 @@
+openapi: 3.1.0
+info:
+  title: HomeWellness Companion API
+  version: 0.3.0
+paths:
+  /healthz:
+    get:
+      tags:
+      - system
+      summary: Healthz
+      operationId: healthz_healthz_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /elders/{elder_id}/messages:
+    post:
+      tags:
+      - chat
+      summary: Post Message
+      operationId: post_message_elders__elder_id__messages_post
+      parameters:
+      - name: elder_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{1,64}$
+          title: Elder Id
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Unique per request. 8-64 safe characters.
+          title: Idempotency-Key
+        description: Unique per request. 8-64 safe characters.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unprocessable Entity
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+  /elders/{elder_id}/conversation:
+    get:
+      tags:
+      - chat
+      summary: Get Conversation
+      operationId: get_conversation_elders__elder_id__conversation_get
+      parameters:
+      - name: elder_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{1,64}$
+          title: Elder Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 20
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unprocessable Entity
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+  /elders/{elder_id}/status:
+    get:
+      tags:
+      - chat
+      summary: Get Status
+      operationId: get_status_elders__elder_id__status_get
+      parameters:
+      - name: elder_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{1,64}$
+          title: Elder Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unprocessable Entity
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+  /alerts:
+    get:
+      tags:
+      - alerts
+      summary: Get Alerts
+      operationId: get_alerts_alerts_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertsResponse'
+  /sim/scenarios/{name}:
+    post:
+      tags:
+      - demo
+      summary: Run Scenario
+      description: Demo only. Publishes the device messages of a scenario to MQTT.
+      operationId: run_scenario_sim_scenarios__name__post
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          enum:
+          - morning
+          - dizzy
+          - crisis
+          type: string
+          title: Name
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Unique per request. 8-64 safe characters.
+          title: Idempotency-Key
+        description: Unique per request. 8-64 safe characters.
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unprocessable Entity
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+components:
+  schemas:
+    AlertOut:
+      properties:
+        action:
+          type: string
+          title: Action
+        title:
+          type: string
+          title: Title
+        body:
+          type: string
+          title: Body
+        recipients:
+          items:
+            type: string
+          type: array
+          title: Recipients
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - action
+      - title
+      - body
+      - recipients
+      - created_at
+      title: AlertOut
+    AlertsResponse:
+      properties:
+        alerts:
+          items:
+            $ref: '#/components/schemas/AlertOut'
+          type: array
+          title: Alerts
+      type: object
+      required:
+      - alerts
+      title: AlertsResponse
+    ConversationResponse:
+      properties:
+        turns:
+          items:
+            $ref: '#/components/schemas/TurnOut'
+          type: array
+          title: Turns
+      type: object
+      required:
+      - turns
+      title: ConversationResponse
+    DoseOut:
+      properties:
+        dose_id:
+          type: string
+          title: Dose Id
+        label:
+          type: string
+          title: Label
+        time:
+          type: string
+          title: Time
+        state:
+          type: string
+          title: State
+      type: object
+      required:
+      - dose_id
+      - label
+      - time
+      - state
+      title: DoseOut
+    ErrorDetail:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+        trace_id:
+          type: string
+          title: Trace Id
+        fields:
+          anyOf:
+          - items:
+              additionalProperties:
+                type: string
+              type: object
+            type: array
+          - type: 'null'
+          title: Fields
+      type: object
+      required:
+      - code
+      - message
+      - trace_id
+      title: ErrorDetail
+    ErrorResponse:
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+      type: object
+      required:
+      - error
+      title: ErrorResponse
+    MessageRequest:
+      properties:
+        text:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Text
+      additionalProperties: false
+      type: object
+      required:
+      - text
+      title: MessageRequest
+    MessageResponse:
+      properties:
+        reply:
+          type: string
+          title: Reply
+        trace_id:
+          type: string
+          title: Trace Id
+      type: object
+      required:
+      - reply
+      - trace_id
+      title: MessageResponse
+    ScenarioResponse:
+      properties:
+        scenario:
+          type: string
+          title: Scenario
+        published:
+          type: integer
+          title: Published
+      type: object
+      required:
+      - scenario
+      - published
+      title: ScenarioResponse
+    StatusResponse:
+      properties:
+        display_name:
+          type: string
+          title: Display Name
+        local_time:
+          type: string
+          title: Local Time
+        blood_pressure:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Blood Pressure
+        alert_level:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Alert Level
+        heart_rate_bpm:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Heart Rate Bpm
+        sleep_hours:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Sleep Hours
+        doses:
+          items:
+            $ref: '#/components/schemas/DoseOut'
+          type: array
+          title: Doses
+      type: object
+      required:
+      - display_name
+      - local_time
+      - blood_pressure
+      - alert_level
+      - heart_rate_bpm
+      - sleep_hours
+      - doses
+      title: StatusResponse
+    TurnOut:
+      properties:
+        role:
+          type: string
+          title: Role
+        text:
+          type: string
+          title: Text
+        at:
+          type: string
+          format: date-time
+          title: At
+      type: object
+      required:
+      - role
+      - text
+      - at
+      title: TurnOut

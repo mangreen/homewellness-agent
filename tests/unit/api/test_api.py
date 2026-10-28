@@ -202,3 +202,43 @@ def should_answer_422_when_the_scenario_is_unknown(client):
 
 def should_answer_400_when_a_scenario_is_started_without_a_key(client):
     assert client.post("/sim/scenarios/morning").status_code == 400
+
+
+def should_answer_422_when_a_domain_rule_is_broken_without_a_special_code(client, container):
+    from homewellness.models.errors import DomainError
+
+    class Strict:
+        def reply(self, elder_id, text):
+            raise DomainError("detail that must not leak")
+
+    container.chat = Strict()
+    response = send(client)
+    assert (response.status_code, response.json()["error"]["code"]) == (422, "invalid_request")
+    assert "must not leak" not in response.text
+
+
+def should_start_and_stop_the_subscriber_and_close_the_publisher_with_the_app(container):
+    events = []
+
+    class Subscriber:
+        def start(self):
+            events.append("start")
+
+        def stop(self):
+            events.append("stop")
+
+        def is_ready(self):
+            return True
+
+    class Publisher:
+        def close(self):
+            events.append("close")
+
+    with TestClient(create_app(container, subscriber=Subscriber(), publisher=Publisher())) as c:
+        assert c.get("/healthz").status_code == 200
+    assert events == ["start", "stop", "close"]
+
+
+def should_run_without_a_subscriber_and_a_publisher_when_none_are_given(container):
+    with TestClient(create_app(container)) as c:
+        assert c.get("/healthz").json() == {"status": "ok"}

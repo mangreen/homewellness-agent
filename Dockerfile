@@ -10,4 +10,6 @@ RUN pip install -r requirements-dev.txt
 COPY pyproject.toml ./
 COPY src ./src
 COPY tests ./tests
-CMD ["python", "-m", "homewellness.worker"]
+# One process only: the clock, the alert list and the MQTT subscriber live in it.
+CMD ["uvicorn", "homewellness.main:create_production_app", "--factory", \
+     "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

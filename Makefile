@@ -1,5 +1,5 @@
 # All Python work runs in Docker. The host needs only Docker and git.
-.PHONY: up down ps logs test itest lint sim demo-reset offline-bundle
+.PHONY: up down ps logs test itest lint sim say alerts demo-cli openapi demo-reset offline-bundle
 
 up:
 	test -f .env || cp .env.example .env
@@ -28,6 +28,27 @@ itest:
 # Play a demo scenario: make sim S=morning   (morning | dizzy | crisis)
 sim:
 	docker compose exec app python -m homewellness.simulator $(S)
+
+# Talk to the agent: make say T="我今天頭有點暈"
+say:
+	curl -s -X POST http://localhost:8001/elders/demo-elder-001/messages \
+		-H 'Content-Type: application/json' -H "Idempotency-Key: $$(uuidgen)" \
+		-d '{"text": "$(T)"}'; echo
+
+alerts:
+	curl -s http://localhost:8001/alerts; echo
+
+# The whole story in the terminal. Needs no other container and no network. Add ARGS=--step to pause.
+demo-cli:
+	test -f .env || cp .env.example .env
+	docker compose build app
+	docker compose run --rm --no-deps app python -m homewellness.demo_cli $(ARGS)
+
+# Rewrite docs/api/openapi.yaml after an API change.
+openapi:
+	test -f .env || cp .env.example .env
+	docker compose --profile test build test
+	docker compose --profile test run --rm -T test python -m homewellness.api.export_openapi > docs/api/openapi.yaml
 
 # Clear the in-memory database and the de-duplication keys. Then replay the scenarios.
 demo-reset:
