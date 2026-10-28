@@ -19,6 +19,7 @@ class Settings:
     log_level: str = "INFO"
     demo_mode: bool = False
     health_port: int = 8000
+    llm_provider: str = "fake"  # Only "fake" is implemented. See bootstrap.
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] = os.environ) -> "Settings":
@@ -35,4 +36,5 @@ class Settings:
             log_level=env.get("LOG_LEVEL", "INFO"),
             demo_mode=env.get("DEMO_MODE", "false").strip().lower() in _TRUE,
             health_port=int(env.get("HEALTH_PORT", "8000")),
+            llm_provider=env.get("LLM_PROVIDER", "fake"),
         )

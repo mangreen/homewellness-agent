@@ -34,7 +34,7 @@ def make(env, received):
             claims=env.claims, clock=env.clock,
         )
         return MqttController(
-            telemetry=telemetry, on_trigger=lambda elder, t: received.append((elder, t)),
+            telemetry=telemetry, on_triggers=lambda elder, ts: received.append((elder, ts)),
             clock_control=clock_control,
         )
     return build
@@ -54,8 +54,8 @@ def should_store_vitals_and_report_a_trigger_when_a_vitals_message_arrives(make,
     env.clock.set(taipei(12, 0))
     make().handle_message(vitals_topic(ELDER_ID), critical())
     assert str(env.telemetry.latest_vitals(ELDER_ID).blood_pressure) == "188/121"
-    assert [(e, t.kind, t.alert_level) for e, t in received] == [
-        (ELDER_ID, TriggerKind.ABNORMAL_VITALS, AlertLevel.CRITICAL)
+    assert [(e, [(t.kind, t.alert_level) for t in ts]) for e, ts in received] == [
+        (ELDER_ID, [(TriggerKind.ABNORMAL_VITALS, AlertLevel.CRITICAL)])
     ]
 
 
@@ -65,7 +65,7 @@ def should_store_sleep_and_report_a_trigger_when_a_valid_sleep_message_arrives(m
         sleep_topic(ELDER_ID), body(woke_on=TODAY.isoformat(), hours_asleep=4.5)
     )
     assert env.telemetry.latest_sleep(ELDER_ID).hours_asleep == 4.5
-    assert [t.kind for _, t in received] == [TriggerKind.POOR_SLEEP]
+    assert [t.kind for _, ts in received for t in ts] == [TriggerKind.POOR_SLEEP]
 
 
 @pytest.mark.parametrize(
@@ -115,3 +115,18 @@ def should_log_one_trace_id_and_the_user_id_when_a_message_is_handled(make, env)
     assert len(entries) >= 2
     assert len({e["trace_id"] for e in entries}) == 1 and entries[0]["trace_id"] != "-"
     assert {e["user_id"] for e in entries} == {ELDER_ID}
+
+
+def should_report_all_triggers_of_one_message_in_one_call(make, env, received):
+    env.clock.set(taipei(8, 5))
+    make().handle_message(
+        sleep_topic(ELDER_ID), body(woke_on=TODAY.isoformat(), hours_asleep=4.5)
+    )
+    assert len(received) == 1
+    assert [t.kind for t in received[0][1]] == [TriggerKind.MEDICATION_DUE, TriggerKind.POOR_SLEEP]
+
+
+def should_not_call_the_callback_when_a_message_brings_no_trigger(make, env, received):
+    env.clock.set(taipei(12, 0))
+    make().handle_message(vitals_topic(ELDER_ID), critical(systolic=120, diastolic=80))
+    assert received == []

@@ -10,6 +10,10 @@ def should_use_safe_defaults_when_the_environment_is_empty():
     assert (settings.demo_mode, settings.dynamodb_endpoint) == (False, None)
 
 
+def should_use_the_fake_llm_when_no_provider_is_set():
+    assert Settings.from_env({}).llm_provider == "fake"
+
+
 def should_read_values_when_the_environment_sets_them():
     settings = Settings.from_env({
         "STORE_BACKEND": "memory", "MQTT_HOST": "broker", "MQTT_PORT": "1884",

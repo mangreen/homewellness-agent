@@ -13,6 +13,10 @@ class RecordingNotifier:
         self.sent: list[Notification] = []
         self.fail_next = False  # Test hook: the next send raises once.
 
+    def list_sent(self) -> list[Notification]:
+        with self._lock:
+            return list(self.sent)
+
     def send(self, notification: Notification) -> None:
         with self._lock:
             if self.fail_next:

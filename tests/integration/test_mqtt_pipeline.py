@@ -54,7 +54,7 @@ def pipeline(broker, dynamo_table, elder_id):
             intakes=dynamo.DynamoIntakeStore(dynamo_table),
             claims=dynamo.DynamoClaimStore(dynamo_table), clock=clock,
         ),
-        on_trigger=lambda elder, trigger: received.append(trigger),
+        on_triggers=lambda elder, triggers: received.extend(triggers),
         clock_control=clock,
     )
     subscriber = MqttSubscriber(*broker, subscriptions(True), controller.handle_message)

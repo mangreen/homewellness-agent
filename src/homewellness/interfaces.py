@@ -64,3 +64,13 @@ class ConversationStore(Protocol):
 
 class AgentRunner(Protocol):
     def reply(self, request: AgentRequest) -> str: ...
+
+
+class AgentActions(Protocol):
+    """What the agent may do. Each method is one tool. Every call is bound to one elder."""
+
+    def get_latest_vitals(self, elder_id: str) -> dict: ...
+    def get_medication_status(self, elder_id: str) -> dict: ...
+    def log_medication_intake(self, elder_id: str) -> dict: ...
+    def escalate_emergency(self, elder_id: str, symptoms: list[str]) -> dict:
+        """Ask the safety policy to alert people. The policy may refuse."""

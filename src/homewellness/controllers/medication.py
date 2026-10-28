@@ -1,19 +1,19 @@
-"""Controller: the elder says that they took their medicine."""
+"""Controller: medicine intake of the elder."""
 
 from homewellness.controllers.health_context import taken_dose_ids
 from homewellness.interfaces import Clock, ElderStore, IntakeStore
+from homewellness.models.interaction import DoseStatus
 from homewellness.models.medication import (
     IntakeResolution,
     IntakeStatus,
     MedicationIntake,
+    dose_states,
     resolve_intake,
 )
 
 
 class MedicationController:
-    def __init__(
-        self, *, elders: ElderStore, intakes: IntakeStore, clock: Clock
-    ) -> None:
+    def __init__(self, *, elders: ElderStore, intakes: IntakeStore, clock: Clock) -> None:
         self._elders = elders
         self._intakes = intakes
         self._clock = clock
@@ -31,3 +31,10 @@ class MedicationController:
         if not self._intakes.add(intake):
             return IntakeResolution(IntakeStatus.ALREADY_TAKEN, resolution.dose)
         return resolution
+
+    def status(self, elder_id: str) -> list[DoseStatus]:
+        profile = self._elders.get(elder_id)
+        local_now = profile.local_now(self._clock.now())
+        schedule = profile.medication_schedule
+        states = dose_states(schedule, taken_dose_ids(self._intakes, profile, local_now), local_now)
+        return [DoseStatus(dose, states[dose.dose_id]) for dose in schedule.doses]

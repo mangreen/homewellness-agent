@@ -30,7 +30,7 @@ def pipeline():
         intakes=InMemoryIntakeStore(), claims=InMemoryClaimStore(), clock=clock,
     )
     controller = MqttController(
-        telemetry=telemetry, on_trigger=lambda elder, t: triggers.append(t), clock_control=clock
+        telemetry=telemetry, on_triggers=lambda elder, ts: triggers.extend(ts), clock_control=clock
     )
 
     def play(name):

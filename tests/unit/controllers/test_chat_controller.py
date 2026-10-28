@@ -95,3 +95,49 @@ def should_leave_old_sleep_out_of_the_context_when_it_is_from_a_previous_day(
     env.telemetry.save_sleep(make_sleep(4.0, woke_on=date(2026, 10, 26)))
     use_case.reply(ELDER_ID, "hello")
     assert agent.requests[0].context.sleep is None
+
+
+def should_put_the_system_prompt_in_the_request_without_live_vitals(use_case, env, agent):
+    env.telemetry.save_vitals(make_vitals(taipei(8, 0), 158, 98))
+    use_case.reply(ELDER_ID, "hello")
+    prompt = agent.requests[0].system_prompt
+    assert "稱呼：王奶奶" in prompt and "158/98" not in prompt
+
+
+def should_return_the_history_oldest_first_when_it_is_requested(use_case):
+    use_case.reply(ELDER_ID, "first")
+    use_case.reply(ELDER_ID, "second")
+    assert [t.text for t in use_case.history(ELDER_ID, 10)] == [
+        "first", "reply-1", "second", "reply-2"]
+
+
+def should_return_the_health_context_when_the_status_is_requested(use_case):
+    assert use_case.status(ELDER_ID).display_name == "王奶奶"
+
+
+def trigger(kind=None):
+    from datetime import time
+
+    from homewellness.models.medication import Dose
+    from homewellness.models.trigger_policy import ProactiveTrigger, TriggerKind
+
+    dose = Dose("am", "早上", time(8))
+    return ProactiveTrigger(kind or TriggerKind.MEDICATION_DUE, "k", dose=dose)
+
+
+def should_send_an_event_message_to_the_agent_when_triggers_arrive(use_case, agent):
+    reply = use_case.proactive(ELDER_ID, [trigger()])
+    assert reply == "reply-1"
+    assert agent.requests[0].message.startswith("[SYSTEM_EVENT]")
+    assert "kind=medication_due" in agent.requests[0].message
+
+
+def should_store_only_the_agent_turn_when_a_proactive_message_is_sent(use_case, env):
+    use_case.proactive(ELDER_ID, [trigger()])
+    assert [(t.role, t.text) for t in env.conversations.recent(ELDER_ID, 10)] == [
+        (Role.AGENT, "reply-1")]
+
+
+def should_do_nothing_when_there_are_no_triggers(use_case, agent, env):
+    assert use_case.proactive(ELDER_ID, []) is None
+    assert agent.requests == [] and env.conversations.recent(ELDER_ID, 10) == []

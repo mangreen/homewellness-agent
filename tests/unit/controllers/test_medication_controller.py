@@ -59,3 +59,10 @@ def should_report_already_taken_when_another_request_wins_the_race(env):
 
     use_case = MedicationController(elders=env.elders, intakes=RacingIntakes(), clock=env.clock)
     assert use_case.record_intake(ELDER_ID).status is IntakeStatus.ALREADY_TAKEN
+
+
+def should_list_every_dose_with_its_state_when_the_status_is_requested(use_case):
+    from homewellness.models.medication import DoseState
+
+    assert [(d.dose.dose_id, d.state) for d in use_case.status(ELDER_ID)] == [
+        ("am", DoseState.DUE), ("pm", DoseState.UPCOMING)]
