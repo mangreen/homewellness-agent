@@ -17,7 +17,8 @@ Goal: a live demo that runs offline. Show the architecture and the idea.
 ## Commands (run on the host; Python runs in Docker)
 - `make up` / `make down`: start or stop the stack.
 - `make test`: run tests with the coverage gate (80%).
-- `make lint`: run ruff.
+- `make lint`: run ruff. `make itest`: integration tests. `make demo-cli`: the demo story in the terminal.
+- `make openapi`: rewrite `docs/api/openapi.yaml` after an API change.
 
 ## Context
 - Memory: `.agents/memories/`. Decisions: `docs/adr/`. Backlog: `todo.md`.

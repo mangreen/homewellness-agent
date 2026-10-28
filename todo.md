@@ -21,7 +21,12 @@
 - [x] Demo clock, three scenarios, simulator CLI, worker, health endpoint
 - [ ] User runs `make test`, `make itest`, `make up`, `make sim S=morning` on the Mac
 
+## Phase 3: Agent and API
+- [x] Scripted LangChain model, 4 tools bound to one elder, policy gate, proactive greeting
+- [x] FastAPI: strict DTOs, Idempotency-Key (409), trace-id, sanitized errors, OpenAPI file
+- [x] Demo story A to D as an API test and as `make demo-cli`
+- [ ] User runs `make test`, `make itest`, `make up`, `make demo-cli`, `make say` on the Mac
+
 ## Later
-- Phase 3: scripted chat model, agent tools, FastAPI, trace-id, JSON logs
 - Phase 4: Streamlit UI, demo script, offline rehearsal
 - After demo: complete MEM and ADR, write slides
