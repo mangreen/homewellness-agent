@@ -130,3 +130,56 @@ def should_not_call_the_callback_when_a_message_brings_no_trigger(make, env, rec
     env.clock.set(taipei(12, 0))
     make().handle_message(vitals_topic(ELDER_ID), critical(systolic=120, diastolic=80))
     assert received == []
+
+
+def build_with_events(env, events):
+    telemetry = TelemetryController(
+        elders=env.elders, telemetry=env.telemetry, intakes=env.intakes, claims=env.claims,
+        clock=env.clock,
+    )
+    return MqttController(
+        telemetry=telemetry, on_triggers=lambda elder, ts: None,
+        on_event=lambda kind, text: events.append((kind, text)), clock_control=FakeClockControl(),
+    )
+
+
+def should_report_a_device_event_when_vitals_arrive(env):
+    events = []
+    env.clock.set(taipei(12, 0))
+    build_with_events(env, events).handle_message(vitals_topic(ELDER_ID), critical())
+    assert events == [("device", "裝置回報：血壓 188/121、心率 104")]
+
+
+def should_report_a_device_event_when_sleep_arrives(env):
+    events = []
+    build_with_events(env, events).handle_message(
+        sleep_topic(ELDER_ID), body(woke_on=TODAY.isoformat(), hours_asleep=4.5))
+    assert events == [("device", "裝置回報：睡眠 4.5 小時")]
+
+
+def should_report_a_device_event_with_heart_rate_only_when_there_is_no_pressure(env):
+    events = []
+    build_with_events(env, events).handle_message(
+        vitals_topic(ELDER_ID), body(measured_at=taipei(12, 0).isoformat(), heart_rate_bpm=70))
+    assert events == [("device", "裝置回報：心率 70")]
+
+
+def should_report_a_clock_event_when_the_demo_clock_is_set(env):
+    events = []
+    build_with_events(env, events).handle_message(CLOCK_TOPIC, body(now=taipei(8, 5).isoformat()))
+    assert events == [("clock", "（Demo）時間設為 08:05")]
+
+
+def should_report_no_event_when_a_message_is_dropped(env):
+    events = []
+    build_with_events(env, events).handle_message(vitals_topic(ELDER_ID), b"not json")
+    assert events == []
+
+
+def should_report_only_the_pressure_when_the_reading_has_no_heart_rate(env):
+    events = []
+    env.clock.set(taipei(12, 0))
+    build_with_events(env, events).handle_message(
+        vitals_topic(ELDER_ID),
+        body(measured_at=taipei(12, 0).isoformat(), systolic=158, diastolic=98))
+    assert events == [("device", "裝置回報：血壓 158/98")]

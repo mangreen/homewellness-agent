@@ -242,3 +242,38 @@ def should_start_and_stop_the_subscriber_and_close_the_publisher_with_the_app(co
 def should_run_without_a_subscriber_and_a_publisher_when_none_are_given(container):
     with TestClient(create_app(container)) as c:
         assert c.get("/healthz").json() == {"status": "ok"}
+
+
+# --- demo activity and reset -------------------------------------------------------------------
+
+def should_list_the_activity_events_when_a_scenario_has_run(client):
+    client.post("/sim/scenarios/morning", headers={"Idempotency-Key": key()})
+    events = client.get("/demo/activity?limit=50").json()["events"]
+    assert {e["kind"] for e in events} >= {"clock", "device", "trigger"}
+    assert all({"at", "kind", "text"} <= e.keys() for e in events)
+
+
+def should_answer_422_when_the_activity_limit_is_out_of_range(client):
+    assert client.get("/demo/activity?limit=0").status_code == 422
+    assert client.get("/demo/activity?limit=101").status_code == 422
+
+
+def should_answer_404_for_activity_and_reset_when_demo_mode_is_off(container, publisher):
+    container.settings = type(container.settings)(store_backend="memory", demo_mode=False)
+    client = TestClient(create_app(container, publisher=publisher))
+    assert client.get("/demo/activity").status_code == 404
+    assert client.post("/demo/reset", headers={"Idempotency-Key": key()}).status_code == 404
+
+
+def should_forget_the_story_when_the_demo_is_reset(client):
+    client.post("/sim/scenarios/morning", headers={"Idempotency-Key": key()})
+    send(client, "吃了")
+    response = client.post("/demo/reset", headers={"Idempotency-Key": key()})
+    assert response.json() == {"status": "reset"}
+    assert client.get(f"/elders/{ELDER}/conversation").json()["turns"] == []
+    assert client.get("/alerts").json() == {"alerts": []}
+    assert client.get("/demo/activity").json() == {"events": []}
+
+
+def should_answer_400_when_the_reset_has_no_idempotency_key(client):
+    assert client.post("/demo/reset").status_code == 400

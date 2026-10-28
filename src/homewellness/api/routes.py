@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Path, Query, Requ
 from fastapi.responses import JSONResponse
 
 from homewellness.api.schemas import (
+    ActivityEventOut,
+    ActivityResponse,
     AlertOut,
     AlertsResponse,
     ConversationResponse,
@@ -16,6 +18,7 @@ from homewellness.api.schemas import (
     ErrorResponse,
     MessageRequest,
     MessageResponse,
+    ResetResponse,
     ScenarioName,
     ScenarioResponse,
     StatusResponse,
@@ -124,3 +127,29 @@ def run_scenario(name: ScenarioName, request: Request, key: IdemKey) -> Scenario
         for message in messages:
             publisher.publish(message.topic, message.body())
     return ScenarioResponse(scenario=name, published=len(messages))
+
+
+def _demo_container(request: Request):
+    container = _container(request)
+    if not container.settings.demo_mode:
+        raise HTTPException(status_code=404)
+    return container
+
+
+@router.get("/demo/activity", response_model=ActivityResponse, responses=_ERRORS, tags=["demo"])
+def get_activity(request: Request,
+                 limit: Annotated[int, Query(ge=1, le=100)] = 30) -> ActivityResponse:
+    """Demo only. What happened behind the scenes, oldest first."""
+    events = _demo_container(request).activity.recent(limit)
+    return ActivityResponse(
+        events=[ActivityEventOut(at=e.at, kind=e.kind, text=e.text) for e in events]
+    )
+
+
+@router.post("/demo/reset", response_model=ResetResponse, responses=_ERRORS, tags=["demo"])
+def reset_demo(request: Request, key: IdemKey) -> ResetResponse:
+    """Demo only. Forget all data and move the clock back, so the story can start again."""
+    container = _demo_container(request)
+    with idempotent(container.claims, "demo-reset", key):
+        container.reset()
+    return ResetResponse(status="reset")

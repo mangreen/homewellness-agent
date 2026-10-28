@@ -18,7 +18,9 @@ from homewellness.controllers.mqtt import MqttController
 from homewellness.controllers.telemetry import TelemetryController
 from homewellness.demo import demo_profile
 from homewellness.interfaces import ClaimStore, Clock
-from homewellness.models.trigger_policy import ProactiveTrigger
+from homewellness.models.interaction import Notification
+from homewellness.models.trigger_policy import ProactiveTrigger, TriggerKind
+from homewellness.services.activity import ActivityLog
 from homewellness.services.agent import LangChainAgentRunner
 from homewellness.services.clock import SimulatedClock, SystemClock
 from homewellness.services.notifier import RecordingNotifier
@@ -36,6 +38,12 @@ from homewellness.stores.memory import (
 
 logger = logging.getLogger("homewellness.app")
 
+_TRIGGER_TEXT = {
+    TriggerKind.ABNORMAL_VITALS: "血壓異常",
+    TriggerKind.MEDICATION_DUE: "該吃藥",
+    TriggerKind.POOR_SLEEP: "睡眠不足",
+}
+
 
 @dataclass
 class Container:
@@ -49,6 +57,8 @@ class Container:
     mqtt: MqttController
     notifier: RecordingNotifier
     claims: ClaimStore
+    activity: ActivityLog
+    reset_state: Callable[[], None]  # Forget stored data and move the demo clock back.
     # The newest proactive triggers, kept for the demo views.
     triggers: deque = field(default_factory=lambda: deque(maxlen=100))
 
@@ -56,10 +66,18 @@ class Container:
         """Device event -> the agent starts the conversation."""
         for trigger in triggers:
             self.triggers.append((elder_id, trigger))
+            self.activity.add("trigger", f"主動觸發：{_TRIGGER_TEXT[trigger.kind]}")
         try:
             self.chat.proactive(elder_id, triggers)
         except Exception:  # noqa: BLE001 - a failed greeting must not stop the ingest
             logger.exception("proactive message failed", extra={"event": "proactive_failed"})
+
+    def reset(self) -> None:
+        """Start the demo story again. For the demo only."""
+        self.reset_state()
+        self.notifier.clear()
+        self.triggers.clear()
+        self.activity.clear()
 
 
 def _build_model(settings: Settings) -> BaseChatModel:
@@ -80,6 +98,7 @@ def build_container(
     # In demo mode the scenario can move the clock. Otherwise the clock stays real.
     demo_clock = SimulatedClock(base_clock) if settings.demo_mode else None
     active_clock = demo_clock or base_clock
+    activity = ActivityLog(active_clock)
 
     if settings.store_backend == "dynamodb":
         table = DynamoTable(
@@ -90,13 +109,32 @@ def build_container(
         telemetry_store = dynamo.DynamoTelemetryStore(table)
         intakes, claims = dynamo.DynamoIntakeStore(table), dynamo.DynamoClaimStore(table)
         conversations = dynamo.DynamoConversationStore(table)
+        forget_data: Callable[[], None] = table.reset
     else:
         telemetry_store = InMemoryTelemetryStore()
         intakes, claims = InMemoryIntakeStore(), InMemoryClaimStore()
         conversations = InMemoryConversationStore()
 
+        def forget_data() -> None:
+            for store in (telemetry_store, intakes, claims, conversations):
+                store.clear()
+
+    def reset_state() -> None:
+        forget_data()
+        if demo_clock is not None:
+            demo_clock.reset()
+
+    def on_alert(notification: Notification) -> None:
+        recipients = ", ".join(r.value for r in notification.recipients)
+        activity.add("alert", f"警報 {notification.action.value} → {recipients}")
+
+    def observe_tool(tool: str, elder_id: str) -> None:
+        activity.add("tool", f"Agent 呼叫工具：{tool}")
+        if on_tool_call is not None:
+            on_tool_call(tool, elder_id)
+
     elders = InMemoryElderStore([demo_profile()])
-    notifier = RecordingNotifier()
+    notifier = RecordingNotifier(on_send=on_alert)
     medication = MedicationController(elders=elders, intakes=intakes, clock=active_clock)
     escalation = EscalationController(
         elders=elders, telemetry=telemetry_store, claims=claims, notifier=notifier,
@@ -104,7 +142,7 @@ def build_container(
     )
     actions = AgentActionsController(
         elders=elders, telemetry=telemetry_store, intakes=intakes, medication=medication,
-        escalation=escalation, clock=active_clock, on_call=on_tool_call,
+        escalation=escalation, clock=active_clock, on_call=observe_tool,
     )
     chat = ChatController(
         elders=elders, telemetry=telemetry_store, intakes=intakes, conversations=conversations,
@@ -118,11 +156,12 @@ def build_container(
     mqtt_controller = MqttController(
         telemetry=telemetry,
         on_triggers=lambda elder_id, triggers: holder[0].handle_triggers(elder_id, triggers),
+        on_event=activity.add,
         clock_control=demo_clock,
     )
     container = Container(
         settings, active_clock, telemetry, medication, escalation, actions, chat,
-        mqtt_controller, notifier, claims,
+        mqtt_controller, notifier, claims, activity, reset_state,
     )
     holder.append(container)
     return container

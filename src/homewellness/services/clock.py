@@ -37,3 +37,7 @@ class SimulatedClock:
     def set(self, target: datetime) -> None:
         with self._lock:
             self._offset = target - self._base.now()
+
+    def reset(self) -> None:
+        with self._lock:
+            self._offset = timedelta(0)

@@ -63,6 +63,20 @@ class ScenarioResponse(BaseModel):
     published: int
 
 
+class ActivityEventOut(BaseModel):
+    at: datetime
+    kind: str
+    text: str
+
+
+class ActivityResponse(BaseModel):
+    events: list[ActivityEventOut]
+
+
+class ResetResponse(BaseModel):
+    status: str
+
+
 class ErrorDetail(BaseModel):
     code: str
     message: str

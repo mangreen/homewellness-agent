@@ -21,3 +21,11 @@ def should_keep_moving_with_the_base_clock_after_a_jump():
     clock.set(taipei(8, 5))
     base.set(base.now() + timedelta(seconds=90))
     assert clock.now() == taipei(8, 5) + timedelta(seconds=90)
+
+
+def should_follow_the_base_clock_again_when_it_is_reset():
+    base = FixedClock(datetime(2026, 1, 1, tzinfo=UTC))
+    clock = SimulatedClock(base)
+    clock.set(taipei(8, 5))
+    clock.reset()
+    assert clock.now() == base.now()
