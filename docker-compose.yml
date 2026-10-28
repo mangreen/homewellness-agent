@@ -56,6 +56,7 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
+      - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
 
   itest:
     # Integration tests against Mosquitto and DynamoDB Local. Run with: make itest
@@ -72,6 +73,7 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
+      - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
     depends_on:
       mosquitto:
         condition: service_healthy
