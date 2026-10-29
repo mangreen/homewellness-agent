@@ -11,8 +11,8 @@ This repository is a live-demo PoC. It runs offline. It needs no API key.
 | --- | --- | --- |
 | 1, 1b | Foundation, models, controllers (MVC) | Done |
 | 2 | DynamoDB stores, MQTT, device simulator | Done |
-| 3 | Agent (LangChain, tools), HTTP API, terminal demo | Done, waiting for review |
-| 4 | Streamlit demo UI, rehearsal | Not started |
+| 3 | Agent (LangChain, tools), HTTP API, terminal demo | Done |
+| 4 | Streamlit demo UI, rehearsal, speaker script | Done, waiting for review |
 
 ## Requirements
 
@@ -25,7 +25,9 @@ This repository is a live-demo PoC. It runs offline. It needs no API key.
 make test            # unit tests and the coverage gate (80%)
 make itest           # integration tests: DynamoDB Local and Mosquitto
 make demo-cli        # the whole story in the terminal (no other container, no network)
-make up              # start Mosquitto, DynamoDB Local and the API (http://localhost:8001)
+make up              # start everything. Demo page: http://localhost:8501 (make open). API: http://localhost:8001
+make uitest          # tests of the page (stub API)
+make rehearse        # the whole story through the real page and the real stack
 make sim S=morning   # device scenario: morning, dizzy, crisis
 make say T="我今天頭有點暈"
 make alerts
@@ -38,6 +40,8 @@ The first build needs network access. After that, everything runs offline.
 If your `.env` is older than `.env.example`, copy the new lines into it.
 
 ## The demo story
+
+Speaker script with timing and fallbacks: `docs/demo-script.md`.
 
 1. **A:** the device sends sleep 4.5 h. The agent greets first and reminds the medicine.
 2. **B:** the elder says she is dizzy. The agent reads the vitals by tool, asks the safety policy, and informs the family.
