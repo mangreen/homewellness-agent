@@ -10,5 +10,4 @@ RUN pip install -r requirements-dev.txt
 COPY pyproject.toml ./
 COPY src ./src
 COPY tests ./tests
-COPY tools ./tools
-CMD ["python", "tools/scripts/healthcheck_server.py"]
+CMD ["python", "-m", "homewellness.worker"]

@@ -14,7 +14,10 @@ Replaces: the DDD layer model (Domain, Application, Infrastructure). See ADR-000
 | `views/` | View | Text and format for people. Later: API JSON and the Streamlit page. | `models` |
 | `interfaces.py` | Seams | Small Protocols for what we may swap: stores, clock, notifier, agent. | `models` |
 | `observability.py` | Support | JSON logs with trace-id and user-id. | standard library |
-| `bootstrap.py` (Phase 2) | Wiring | Builds the real objects and gives them to the controllers. | everything |
+| `bootstrap.py` | Wiring | Builds the real objects and gives them to the controllers. | everything |
+| `settings.py`, `health.py`, `worker.py` | Wiring | Environment settings, health endpoint, worker process. | `bootstrap`, `services` |
+| `topics.py` | Support | MQTT topic names. The device, the simulator and the controller share them. | standard library |
+| `demo.py`, `simulator/` | Demo | Demo elder, three scenarios, and the CLI that plays them. | `models`, `topics` |
 
 A controller never imports a concrete store or service. `bootstrap.py` does it.
 `tests/unit/test_architecture_rules.py` checks these rules.
@@ -37,6 +40,40 @@ flowchart LR
     I -.-> SV["Services: clock, notifier, agent, MQTT"]
     EC & CC --> V["Views: notification text, API JSON, UI"]
 ```
+
+## Device message flow (Phase 2)
+
+```mermaid
+sequenceDiagram
+    participant D as Device or simulator
+    participant B as Mosquitto (IoT Core stand-in)
+    participant S as MqttSubscriber
+    participant C as MqttController
+    participant T as TelemetryController
+    participant DB as Stores (DynamoDB)
+    D->>B: publish homewellness/ELDER/vitals
+    B->>S: deliver message
+    S->>C: handle_message(topic, payload)
+    C->>C: new trace-id, validate, reject unknown fields
+    C->>T: ingest(elder_id, reading)
+    T->>DB: save reading, read intakes
+    T->>DB: try_claim(trigger key)
+    T-->>C: only the new triggers
+    C-->>S: on_trigger(elder, trigger): log and keep in container.triggers
+```
+
+In demo mode the topic `homewellness/sim/clock` moves the worker clock. Each scenario starts with one
+clock message. In normal mode the worker ignores it.
+
+## DynamoDB table layout (single table, keys PK and SK, JSON text in `data`)
+
+| PK | SK | Content |
+| --- | --- | --- |
+| `ELDER#<id>` | `VITALS#<utc time>` | one reading |
+| `ELDER#<id>` | `SLEEP#<woke_on date>` | summary of the last night |
+| `ELDER#<id>` | `INTAKE#<date>#<dose_id>` | one dose taken. A conditional write stops a double record. |
+| `ELDER#<id>` | `TURN#<utc time>#<random>` | one conversation turn |
+| `CLAIM#<key>` | `CLAIM` | idempotency and de-duplication key |
 
 ## Model classes
 

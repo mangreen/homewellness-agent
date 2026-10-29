@@ -1,5 +1,5 @@
 # All Python work runs in Docker. The host needs only Docker and git.
-.PHONY: up down ps logs test lint offline-bundle
+.PHONY: up down ps logs test itest lint sim demo-reset offline-bundle
 
 up:
 	test -f .env || cp .env.example .env
@@ -19,6 +19,19 @@ test:
 	test -f .env || cp .env.example .env
 	docker compose --profile test build test
 	docker compose --profile test run --rm test
+
+itest:
+	test -f .env || cp .env.example .env
+	docker compose --profile test build itest
+	docker compose --profile test run --rm itest
+
+# Play a demo scenario: make sim S=morning   (morning | dizzy | crisis)
+sim:
+	docker compose exec app python -m homewellness.simulator $(S)
+
+# Clear the in-memory database and the de-duplication keys. Then replay the scenarios.
+demo-reset:
+	docker compose restart dynamodb app
 
 lint:
 	test -f .env || cp .env.example .env

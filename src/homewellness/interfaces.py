@@ -14,6 +14,12 @@ class Clock(Protocol):
         """Return the current time. The value must have a time zone."""
 
 
+class SettableClock(Clock, Protocol):
+    """A clock that the demo can move."""
+
+    def set(self, now: datetime) -> None: ...
+
+
 class ElderStore(Protocol):
     def get(self, elder_id: str) -> ElderProfile:
         """Return the profile. Raise ElderNotFoundError if it does not exist."""
