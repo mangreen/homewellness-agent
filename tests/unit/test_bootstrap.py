@@ -73,3 +73,36 @@ def should_raise_value_error_when_the_llm_provider_is_not_implemented():
 
     with pytest.raises(ValueError, match="gpt"):
         build_container(Settings(store_backend="memory", llm_provider="gpt"))
+
+
+def fresh_demo_container():
+    return build_container(
+        Settings(store_backend="memory", demo_mode=True), clock=FixedClock(taipei(15, 0))
+    )
+
+
+def should_log_the_story_as_activity_events_when_scenarios_and_chat_run():
+    container = fresh_demo_container()
+    play(container, "morning")
+    play(container, "dizzy")
+    container.chat.reply(DEMO_ELDER_ID, "我今天頭有點暈")
+    events = container.activity.recent(50)
+    assert {e.kind for e in events} == {"clock", "device", "trigger", "tool", "alert"}
+    texts = [e.text for e in events]
+    for expected in ("（Demo）時間設為 08:05", "裝置回報：睡眠 4.5 小時", "主動觸發：該吃藥",
+                     "主動觸發：睡眠不足", "Agent 呼叫工具：get_latest_vitals"):
+        assert expected in texts
+    assert any(t.startswith("警報 notify_family → family") for t in texts)
+
+
+def should_forget_everything_and_allow_a_replay_when_the_container_is_reset():
+    container = fresh_demo_container()
+    play(container, "morning")
+    container.chat.reply(DEMO_ELDER_ID, "吃了")
+    container.reset()
+    assert container.chat.history(DEMO_ELDER_ID, 10) == []
+    assert (list(container.triggers), container.activity.recent(10)) == ([], [])
+    assert container.notifier.list_sent() == []
+    assert container.clock.now() == taipei(15, 0)
+    play(container, "morning")  # The claims are gone, so the greeting comes again.
+    assert len(container.chat.history(DEMO_ELDER_ID, 10)) == 1

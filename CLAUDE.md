@@ -18,6 +18,7 @@ Goal: a live demo that runs offline. Show the architecture and the idea.
 - `make up` / `make down`: start or stop the stack.
 - `make test`: run tests with the coverage gate (80%).
 - `make lint`: run ruff. `make itest`: integration tests. `make demo-cli`: the demo story in the terminal.
+- `make uitest`: tests of the Streamlit page. `make rehearse`: the whole story on the running stack.
 - `make openapi`: rewrite `docs/api/openapi.yaml` after an API change.
 
 ## Context

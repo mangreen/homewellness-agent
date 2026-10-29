@@ -52,6 +52,11 @@ class InMemoryTelemetryStore:
         with self._lock:
             return self._sleep.get(elder_id)
 
+    def clear(self) -> None:
+        with self._lock:
+            self._vitals.clear()
+            self._sleep.clear()
+
 
 class InMemoryIntakeStore:
     def __init__(self) -> None:
@@ -70,6 +75,10 @@ class InMemoryIntakeStore:
         with self._lock:
             return [i for (e, d, _), i in self._items.items() if e == elder_id and d == local_date]
 
+    def clear(self) -> None:
+        with self._lock:
+            self._items.clear()
+
 
 class InMemoryClaimStore:
     def __init__(self) -> None:
@@ -87,6 +96,10 @@ class InMemoryClaimStore:
         with self._lock:
             self._keys.discard(key)
 
+    def clear(self) -> None:
+        with self._lock:
+            self._keys.clear()
+
 
 class InMemoryConversationStore:
     def __init__(self) -> None:
@@ -100,3 +113,7 @@ class InMemoryConversationStore:
     def recent(self, elder_id: str, limit: int) -> list[ConversationTurn]:
         with self._lock:
             return list(self._turns[elder_id][-limit:])
+
+    def clear(self) -> None:
+        with self._lock:
+            self._turns.clear()

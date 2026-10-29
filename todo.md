@@ -27,6 +27,13 @@
 - [x] Demo story A to D as an API test and as `make demo-cli`
 - [ ] User runs `make test`, `make itest`, `make up`, `make demo-cli`, `make say` on the Mac
 
+## Phase 4: Demo UI and rehearsal
+- [x] Activity timeline and demo reset (API), device events, DynamoDB table reset
+- [x] Streamlit page (chat, scenarios, status, alerts, timeline), quick replies, own image
+- [x] UI tests (stub API) and `make rehearse` (whole story, real stack)
+- [x] Demo script, offline rehearsal twice (no network namespace)
+- [ ] User runs `make uitest`, `make rehearse`, `make up`, then the demo by hand with Wi-Fi off
+- [ ] User records a backup screen video
+
 ## Later
-- Phase 4: Streamlit UI, demo script, offline rehearsal
 - After demo: complete MEM and ADR, write slides

@@ -57,6 +57,7 @@ services:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
       - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
+      - ./ui:/app/ui:ro  # A test checks the quick replies of the page.
 
   itest:
     # Integration tests against Mosquitto and DynamoDB Local. Run with: make itest
@@ -74,8 +75,49 @@ services:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
       - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
+      - ./ui:/app/ui:ro  # A test checks the quick replies of the page.
     depends_on:
       mosquitto:
         condition: service_healthy
       dynamodb:
         condition: service_started
+
+  ui:
+    # The demo page. It talks to the API over HTTP only.
+    build: ./ui
+    image: homewellness-ui
+    environment:
+      API_URL: http://app:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8501/_stcore/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  uitest:
+    # Tests of the page with a stub API. Run with: make uitest
+    build: ./ui
+    image: homewellness-ui
+    profiles: ["test"]
+    command: ["pytest", "-m", "not rehearsal"]
+    volumes:
+      - ./ui:/ui:ro
+
+  rehearse:
+    # The whole story through the real page and the real stack. Run with: make rehearse
+    build: ./ui
+    image: homewellness-ui
+    profiles: ["test"]
+    command: ["pytest", "-m", "rehearsal", "-v", "-s"]
+    environment:
+      API_URL: http://app:8000
+    volumes:
+      - ./ui:/ui:ro
+    depends_on:
+      app:
+        condition: service_healthy

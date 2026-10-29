@@ -50,16 +50,29 @@ class ClockMessage(_Message):
     now: AwareDatetime
 
 
+def _describe_reading(reading: VitalsSnapshot | SleepSummary) -> str:
+    if isinstance(reading, SleepSummary):
+        return f"裝置回報：睡眠 {reading.hours_asleep:g} 小時"
+    parts = []
+    if reading.blood_pressure:
+        parts.append(f"血壓 {reading.blood_pressure}")
+    if reading.heart_rate_bpm is not None:
+        parts.append(f"心率 {reading.heart_rate_bpm}")
+    return "裝置回報：" + "、".join(parts)
+
+
 class MqttController:
     def __init__(
         self,
         *,
         telemetry: TelemetryController,
         on_triggers: TriggersCallback,
+        on_event: Callable[[str, str], None] | None = None,
         clock_control: SettableClock | None = None,
     ) -> None:
         self._telemetry = telemetry
         self._on_triggers = on_triggers
+        self._on_event = on_event  # (kind, text) for the demo timeline
         self._clock_control = clock_control  # Set only in demo mode.
 
     def handle_message(self, topic: str, payload: bytes) -> list[ProactiveTrigger]:
@@ -100,6 +113,7 @@ class MqttController:
 
         triggers = self._telemetry.ingest(elder_id, reading)
         logger.info("telemetry ingested", extra={"event": "telemetry_ingested", "kind": kind})
+        self._emit("device", _describe_reading(reading))
         for trigger in triggers:
             logger.info(
                 "proactive trigger",
@@ -110,11 +124,16 @@ class MqttController:
             self._on_triggers(elder_id, triggers)
         return triggers
 
+    def _emit(self, kind: str, text: str) -> None:
+        if self._on_event is not None:
+            self._on_event(kind, text)
+
     def _handle_clock(self, payload: bytes) -> list[ProactiveTrigger]:
         message = ClockMessage.model_validate_json(payload)
         if self._clock_control is None:
             logger.info("clock message ignored", extra={"event": "clock_ignored"})
         else:
             self._clock_control.set(message.now)
+            self._emit("clock", f"（Demo）時間設為 {message.now:%H:%M}")
             logger.info("clock set", extra={"event": "clock_set", "now": message.now.isoformat()})
         return []

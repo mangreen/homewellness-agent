@@ -1,15 +1,15 @@
 """Notifier stand-in. The demo UI reads the sent list."""
 
 import threading
+from collections.abc import Callable
 
 from homewellness.models.interaction import Notification
 
 
 class RecordingNotifier:
-    """Keeps sent notifications in a list. The demo UI reads this list."""
-
-    def __init__(self) -> None:
+    def __init__(self, on_send: Callable[[Notification], None] | None = None) -> None:
         self._lock = threading.Lock()
+        self._on_send = on_send
         self.sent: list[Notification] = []
         self.fail_next = False  # Test hook: the next send raises once.
 
@@ -23,3 +23,9 @@ class RecordingNotifier:
                 self.fail_next = False
                 raise RuntimeError("notifier unavailable")
             self.sent.append(notification)
+        if self._on_send is not None:
+            self._on_send(notification)
+
+    def clear(self) -> None:
+        with self._lock:
+            self.sent.clear()

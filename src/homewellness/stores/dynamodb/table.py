@@ -40,6 +40,18 @@ class DynamoTable:
             handle = self._local.handle = resource.Table(self._table_name)
         return handle
 
+    def reset(self, timeout_s: float = 60.0) -> None:
+        """Delete all data: drop the table and create it again. For the demo only."""
+        client = boto3.session.Session().client(
+            "dynamodb", endpoint_url=self._endpoint_url, region_name=self._region_name
+        )
+        try:
+            client.delete_table(TableName=self._table_name)
+        except client.exceptions.ResourceNotFoundException:
+            pass
+        client.get_waiter("table_not_exists").wait(TableName=self._table_name)
+        self.ensure_table(timeout_s)
+
     def ensure_table(self, timeout_s: float = 60.0) -> None:
         """Create the table if needed. Retry while the DynamoDB endpoint starts."""
         client = boto3.session.Session().client(
