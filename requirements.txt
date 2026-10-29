@@ -1,0 +1,2 @@
+# Runtime dependencies. Phase 1 needs only the time zone database.
+tzdata==2026.5

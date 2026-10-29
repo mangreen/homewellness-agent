@@ -1,0 +1,52 @@
+# NOTE: Only conservative Compose syntax is used. Docker Compose v2.10 is supported.
+name: homewellness
+
+services:
+  mosquitto:
+    # Stand-in for AWS IoT Core. Same MQTT protocol.
+    image: ${MOSQUITTO_IMAGE:-eclipse-mosquitto:2.0.18}
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/broker/uptime' -C 1 -W 3 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  dynamodb:
+    # Stand-in for Amazon DynamoDB. Data resets on restart (-inMemory).
+    image: ${DYNAMODB_IMAGE:-amazon/dynamodb-local:2.5.2}
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    ports:
+      - "8000:8000"
+    # NOTE: No healthcheck. The image has no guaranteed shell tools.
+    # Phase 2 adds connection retry in the DynamoDB adapter.
+
+  app:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./src:/app/src:ro
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      dynamodb:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/healthz')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  test:
+    build: .
+    profiles: ["test"]
+    command: ["pytest", "--cov", "--cov-report=term-missing"]
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
