@@ -22,5 +22,5 @@ Goal: a live demo that runs offline. Show the architecture and the idea.
 - `make openapi`: rewrite `docs/api/openapi.yaml` after an API change.
 
 ## Context
-- Memory: `.agents/memories/`. Decisions: `docs/adr/`. Backlog: `todo.md`.
+- Memory: `.agents/memories/`. Decisions: `docs/adr/` (index: `docs/adr/README.md`). Errors: `.agents/errors/`. Backlog: `todo.md`.
 - Git: Phase Flow. Branch `phase/<n>-<name>`. Tag `phase-<n>-<name>` after merge.

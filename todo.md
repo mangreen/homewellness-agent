@@ -35,5 +35,11 @@
 - [ ] User runs `make uitest`, `make rehearse`, `make up`, then the demo by hand with Wi-Fi off
 - [ ] User records a backup screen video
 
+## Phase 5: Decision records and slides
+- [x] Slides (7 slides, 15 minutes) as a Slides artifact. Export to PDF or PowerPoint for the hand-in
+- [x] MEM-0001 to 0005 and ADR-0001 to 0005 in full form, `docs/adr/README.md` index, three ERR records
+- [x] Test for two-way links, headings and unfinished markers
+- [ ] User checks the slides in the browser and exports PDF or PPTX
+- [ ] User records the backup screen video
+
 ## Later
-- After demo: complete MEM and ADR, write slides

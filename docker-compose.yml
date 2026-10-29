@@ -58,6 +58,7 @@ services:
       - ./tests:/app/tests:ro
       - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
       - ./ui:/app/ui:ro  # A test checks the quick replies of the page.
+      - ./.agents:/app/.agents:ro  # A test checks the decision records.
 
   itest:
     # Integration tests against Mosquitto and DynamoDB Local. Run with: make itest
@@ -76,6 +77,7 @@ services:
       - ./tests:/app/tests:ro
       - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
       - ./ui:/app/ui:ro  # A test checks the quick replies of the page.
+      - ./.agents:/app/.agents:ro  # A test checks the decision records.
     depends_on:
       mosquitto:
         condition: service_healthy

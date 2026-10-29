@@ -12,7 +12,8 @@ This repository is a live-demo PoC. It runs offline. It needs no API key.
 | 1, 1b | Foundation, models, controllers (MVC) | Done |
 | 2 | DynamoDB stores, MQTT, device simulator | Done |
 | 3 | Agent (LangChain, tools), HTTP API, terminal demo | Done |
-| 4 | Streamlit demo UI, rehearsal, speaker script | Done, waiting for review |
+| 4 | Streamlit demo UI, rehearsal, speaker script | Done |
+| 5 | Complete decision records, error records, slides | Done, waiting for review |
 
 ## Requirements
 
@@ -70,7 +71,7 @@ The PoC uses these stand-ins:
 
 ## Trade-offs
 
-See `docs/adr/` and `.agents/memories/`.
+The decision index is `docs/adr/README.md`. It lists every ADR, memory record and error record.
 
 ## Safety note
 
