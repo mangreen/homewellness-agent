@@ -1,5 +1,5 @@
 # All Python work runs in Docker. The host needs only Docker and git.
-.PHONY: up down ps logs test itest lint sim say alerts demo-cli openapi demo-reset offline-bundle
+.PHONY: up down ps logs test itest uitest rehearse open lint sim say alerts demo-cli openapi demo-reset offline-bundle
 
 up:
 	test -f .env || cp .env.example .env
@@ -54,6 +54,19 @@ openapi:
 demo-reset:
 	docker compose restart dynamodb app
 
+uitest:
+	docker compose --profile test build uitest
+	docker compose --profile test run --rm uitest
+
+# Play the whole story through the real page against the running stack (about 30 seconds).
+rehearse:
+	test -f .env || cp .env.example .env
+	docker compose --profile test build rehearse
+	docker compose --profile test run --rm rehearse
+
+open:
+	open http://localhost:8501
+
 lint:
 	test -f .env || cp .env.example .env
 	docker compose --profile test build test
@@ -65,4 +78,4 @@ offline-bundle:
 	docker save -o dist/homewellness-images.tar \
 		$${MOSQUITTO_IMAGE:-eclipse-mosquitto:2.0.18} \
 		$${DYNAMODB_IMAGE:-amazon/dynamodb-local:2.5.2} \
-		homewellness-app homewellness-test
+		homewellness-app homewellness-test homewellness-ui
