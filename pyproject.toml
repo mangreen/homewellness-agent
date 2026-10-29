@@ -9,11 +9,13 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["homewellness.models", "homewellness.controllers", "homewellness.views"]
+source = [
+    "homewellness.models", "homewellness.controllers", "homewellness.views", "homewellness.api",
+]
 branch = true
 
 [tool.coverage.report]
-# Coverage gate applies to models, controllers and views. Stores and services have contract tests.
+# Coverage gate applies to models, controllers, views and the HTTP API. Stores and services have contract tests.
 fail_under = 80
 show_missing = true
 

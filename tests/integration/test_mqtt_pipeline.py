@@ -1,7 +1,6 @@
 """Device message -> real Mosquitto -> subscriber -> controller -> DynamoDB."""
 
 import json
-import os
 import time
 from types import SimpleNamespace
 
@@ -36,14 +35,6 @@ def wait_for(condition, timeout=5.0):
 
 
 @pytest.fixture
-def broker():
-    host = os.environ.get("MQTT_HOST")
-    if not host:
-        pytest.skip("MQTT_HOST is not set")
-    return host, int(os.environ.get("MQTT_PORT", "1883"))
-
-
-@pytest.fixture
 def pipeline(broker, dynamo_table, elder_id):
     clock = SimulatedClock(FixedClock(taipei(12, 0)))
     received = []
@@ -54,7 +45,7 @@ def pipeline(broker, dynamo_table, elder_id):
             intakes=dynamo.DynamoIntakeStore(dynamo_table),
             claims=dynamo.DynamoClaimStore(dynamo_table), clock=clock,
         ),
-        on_trigger=lambda elder, trigger: received.append(trigger),
+        on_triggers=lambda elder, triggers: received.extend(triggers),
         clock_control=clock,
     )
     subscriber = MqttSubscriber(*broker, subscriptions(True), controller.handle_message)

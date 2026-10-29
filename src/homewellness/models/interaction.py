@@ -53,6 +53,8 @@ class HealthContext:
     alert_level: AlertLevel | None
     sleep: SleepSummary | None  # Last night only.
     doses: tuple[DoseStatus, ...]
+    medication_name: str
+    family_contact_name: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,3 +63,4 @@ class AgentRequest:
     message: str
     context: HealthContext
     history: tuple[ConversationTurn, ...]
+    system_prompt: str  # Persona, safety rules and the health memory brief.

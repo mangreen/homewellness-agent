@@ -1,7 +1,7 @@
 import json
 import logging
 
-from homewellness.observability import JsonFormatter, bind_context, new_trace_id
+from homewellness.observability import JsonFormatter, bind_context, current_trace_id, new_trace_id
 
 
 def format_record(message="hello", **extra):
@@ -45,3 +45,9 @@ def should_not_leak_a_stack_trace_when_an_error_is_logged():
 def should_create_unique_32_character_trace_ids():
     first, second = new_trace_id(), new_trace_id()
     assert first != second and len(first) == 32
+
+
+def should_return_the_bound_trace_id_when_a_context_is_active():
+    assert current_trace_id() == "-"
+    with bind_context(trace_id="abc"):
+        assert current_trace_id() == "abc"

@@ -15,6 +15,7 @@ FORBIDDEN = {
                H + "bootstrap", "pydantic", *SDKS),
     "views": (H + "controllers", H + "stores", H + "services", H + "bootstrap", *SDKS),
     "controllers": (H + "stores", H + "services", H + "bootstrap", *SDKS),
+    "api": (H + "stores", H + "services", H + "bootstrap", *SDKS),
     "stores": (H + "controllers", H + "views", H + "bootstrap"),
     "services": (H + "controllers", H + "views", H + "stores", H + "bootstrap"),
 }

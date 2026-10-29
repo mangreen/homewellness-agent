@@ -1,6 +1,6 @@
 # MVC Architecture Overview
 
-Status: Phase 1b. Update this file before you change a model.
+Status: Phase 3. Update this file before you change a model.
 Replaces: the DDD layer model (Domain, Application, Infrastructure). See ADR-0002.
 
 ## Packages
@@ -9,13 +9,14 @@ Replaces: the DDD layer model (Domain, Application, Infrastructure). See ADR-000
 | --- | --- | --- | --- |
 | `models/` | Model | Data classes and business rules. Pure code. No I/O. | standard library only |
 | `stores/` | Model (data access) | One store per kind of data. In-memory and DynamoDB versions. | `models` |
-| `services/` | Model (outside world) | Clock, notifier, MQTT client, agent brain. | `models`, `interfaces` |
+| `services/` | Model (outside world) | Clock, notifier, MQTT client, LangChain agent runner, scripted model. | `models`, `interfaces` |
 | `controllers/` | Controller | Take an input, call models, stores and services, return a result. | `models`, `views`, `interfaces` |
 | `views/` | View | Text and format for people. Later: API JSON and the Streamlit page. | `models` |
 | `interfaces.py` | Seams | Small Protocols for what we may swap: stores, clock, notifier, agent. | `models` |
 | `observability.py` | Support | JSON logs with trace-id and user-id. | standard library |
 | `bootstrap.py` | Wiring | Builds the real objects and gives them to the controllers. | everything |
-| `settings.py`, `health.py`, `worker.py` | Wiring | Environment settings, health endpoint, worker process. | `bootstrap`, `services` |
+| `api/` | Controller + View (HTTP) | FastAPI routes, strict DTOs, trace-id, sanitized errors. | `controllers`, `views`, `models`, `interfaces` |
+| `settings.py`, `main.py` | Wiring | Environment settings and the production entry point. | `bootstrap`, `api`, `services` |
 | `topics.py` | Support | MQTT topic names. The device, the simulator and the controller share them. | standard library |
 | `demo.py`, `simulator/` | Demo | Demo elder, three scenarios, and the CLI that plays them. | `models`, `topics` |
 
@@ -74,6 +75,65 @@ clock message. In normal mode the worker ignores it.
 | `ELDER#<id>` | `INTAKE#<date>#<dose_id>` | one dose taken. A conditional write stops a double record. |
 | `ELDER#<id>` | `TURN#<utc time>#<random>` | one conversation turn |
 | `CLAIM#<key>` | `CLAIM` | idempotency and de-duplication key |
+
+## Agent flow (Phase 3)
+
+```mermaid
+sequenceDiagram
+    participant E as Elder (UI or curl)
+    participant API as api/routes
+    participant CC as ChatController
+    participant AR as LangChainAgentRunner
+    participant M as ScriptedChatModel or real LLM
+    participant AA as AgentActionsController
+    participant EC as EscalationController
+    E->>API: POST /elders/ID/messages with Idempotency-Key
+    API->>API: validate DTO, claim the key (duplicate = 409)
+    API->>CC: reply(elder_id, text)
+    CC->>CC: build health context and system prompt (no live vitals)
+    CC->>AR: reply(AgentRequest)
+    AR->>M: messages and tools
+    M-->>AR: tool call get_latest_vitals
+    AR->>AA: get_latest_vitals(elder_id)
+    M-->>AR: tool call escalate_emergency
+    AR->>AA: escalate_emergency(elder_id, symptoms)
+    AA->>EC: escalate(...): the policy decides, a claim makes it happen once
+    M-->>AR: final answer
+    AR-->>CC: text
+    CC-->>API: reply (both turns are stored)
+```
+
+A device event starts the same flow without an elder message:
+`MqttController -> Container.handle_triggers -> ChatController.proactive -> agent -> stored agent turn`.
+
+### Tools (each is bound to one elder; no tool takes an elder id)
+
+| Tool | Calls | Effect |
+| --- | --- | --- |
+| `get_latest_vitals` | current vitals and level | read only |
+| `get_medication_status` | `MedicationController.status` | read only |
+| `log_medication_intake` | `MedicationController.record_intake` | writes one intake (atomic) |
+| `escalate_emergency` | `EscalationController.escalate` | the policy may refuse. One alert per 10 minutes. |
+
+### Memory
+
+- Short term: the last 10 turns (`ConversationStore`).
+- Long term: intakes, sleep and vitals in the stores. The system prompt carries the brief: name, family,
+  time, medicine and dose states, last night's sleep.
+- Live blood pressure is not in the prompt. The agent must call a tool for it.
+
+## HTTP API (see `docs/api/openapi.yaml`)
+
+| Method and path | Purpose | Idempotency-Key |
+| --- | --- | --- |
+| `POST /elders/{id}/messages` | the elder says something | required (duplicate = 409) |
+| `GET /elders/{id}/conversation` | the last turns | - |
+| `GET /elders/{id}/status` | vitals, level, sleep, doses | - |
+| `GET /alerts` | alerts that were sent | - |
+| `POST /sim/scenarios/{name}` | demo only: publish a scenario to MQTT | required |
+| `GET /healthz` | 200 when connected to the broker and subscribed | - |
+
+Errors use one shape: `{"error": {"code", "message", "trace_id"}}`. No stack trace and no input value.
 
 ## Model classes
 

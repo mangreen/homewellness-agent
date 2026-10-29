@@ -32,6 +32,7 @@ services:
       # FIXME: Local emulator only. Use an IAM role in AWS. Never commit real keys.
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-changeme}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-changeme}
+      LANGSMITH_TRACING: "false"
     ports:
       - "8001:8000"
     volumes:
@@ -55,6 +56,7 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
+      - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
 
   itest:
     # Integration tests against Mosquitto and DynamoDB Local. Run with: make itest
@@ -67,9 +69,11 @@ services:
       # FIXME: Local emulator only. Use an IAM role in AWS. Never commit real keys.
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-changeme}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-changeme}
+      LANGSMITH_TRACING: "false"
     volumes:
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
+      - ./docs:/app/docs:ro  # A test checks docs/api/openapi.yaml.
     depends_on:
       mosquitto:
         condition: service_healthy

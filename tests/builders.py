@@ -43,3 +43,14 @@ def make_vitals(local_time: datetime, systolic: int = 120, diastolic: int = 80,
 
 def make_sleep(hours: float, woke_on: date = TODAY, elder_id: str = ELDER_ID) -> SleepSummary:
     return SleepSummary(elder_id, woke_on, hours)
+
+
+def make_health_context(elder_id: str = ELDER_ID):
+    """A minimal HealthContext for tests that do not need stores."""
+    from homewellness.models.interaction import HealthContext
+
+    return HealthContext(
+        elder_id=elder_id, display_name="王奶奶", local_now=taipei(8, 5), vitals=None,
+        alert_level=None, sleep=None, doses=(), medication_name="降血壓藥",
+        family_contact_name="小美",
+    )

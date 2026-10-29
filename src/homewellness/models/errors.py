@@ -19,3 +19,15 @@ class ElderNotFoundError(DomainError):
 
 class EmptyMessageError(DomainError):
     """The elder message has no text."""
+
+
+class DuplicateRequestError(DomainError):
+    """The same request was already handled (same idempotency key)."""
+
+
+class IdempotencyKeyError(DomainError):
+    """The idempotency key is missing or has a bad format."""
+
+
+class AgentUnavailableError(DomainError):
+    """The agent could not produce an answer."""

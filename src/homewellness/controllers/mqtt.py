@@ -20,7 +20,7 @@ from homewellness.topics import CLOCK_TOPIC, parse_telemetry_topic
 
 logger = logging.getLogger("homewellness.mqtt")
 
-TriggerCallback = Callable[[str, ProactiveTrigger], None]
+TriggersCallback = Callable[[str, list[ProactiveTrigger]], None]
 
 
 class _Message(BaseModel):
@@ -55,11 +55,11 @@ class MqttController:
         self,
         *,
         telemetry: TelemetryController,
-        on_trigger: TriggerCallback,
+        on_triggers: TriggersCallback,
         clock_control: SettableClock | None = None,
     ) -> None:
         self._telemetry = telemetry
-        self._on_trigger = on_trigger
+        self._on_triggers = on_triggers
         self._clock_control = clock_control  # Set only in demo mode.
 
     def handle_message(self, topic: str, payload: bytes) -> list[ProactiveTrigger]:
@@ -106,7 +106,8 @@ class MqttController:
                 extra={"event": "proactive_trigger", "trigger_kind": trigger.kind.value,
                        "dedup_key": trigger.dedup_key},
             )
-            self._on_trigger(elder_id, trigger)
+        if triggers:
+            self._on_triggers(elder_id, triggers)
         return triggers
 
     def _handle_clock(self, payload: bytes) -> list[ProactiveTrigger]:
