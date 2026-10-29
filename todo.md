@@ -9,6 +9,11 @@
 - [x] Coverage gate 80% on Domain and Application
 - [ ] User runs `make test` and `make up` on the Mac and reports the result
 
+## Phase 1b: MVC refactor
+- [x] Mermaid overview, ADR-0002, MEM-0002
+- [x] Move code to MVC packages, keep 122 tests green (now 128 with import rules)
+- [x] Import-rule test
+
 ## Later
 - Phase 2: DynamoDB adapter, MQTT worker, device simulator, claim store contract tests
 - Phase 3: scripted chat model, agent tools, FastAPI, trace-id, JSON logs

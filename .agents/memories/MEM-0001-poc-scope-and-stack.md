@@ -1,6 +1,6 @@
 # MEM: PoC Scope and Stack
 Date: 2026-10-27
-Status: Approved
+Status: Approved (the layer decision is superseded by MEM-0002-mvc-architecture.md)
 Tags: scope, stack, offline, architecture
 
 ## Summary
@@ -9,6 +9,8 @@ The PoC runs offline, needs no API key, and shows the architecture and the idea.
 
 ## Details
 ### Context & Evolution
+2026-10-28: the user asked for a lighter architecture. See MEM-0002 and ADR-0002.
+
 The project is a take-home demo for a Technical PM role. The demo is live.
 The user set these limits: no paid service, no API key, no network at run time.
 
@@ -17,7 +19,7 @@ The user set these limits: no paid service, no API key, no network at run time.
 - Device channel: Mosquitto. It stands in for AWS IoT Core. Same MQTT protocol.
 - Storage: DynamoDB Local. It stands in for Amazon DynamoDB.
 - Notifications: a `Notifier` port. The PoC shows alerts in a UI panel.
-- Layers: Domain, Application, Infrastructure, API. Package name: `homewellness`.
+- Layers: ~~Domain, Application, Infrastructure, API~~ DEPRECATED: superseded by [MEM-0002](MEM-0002-mvc-architecture.md) (MVC). Package name: `homewellness`.
 - All Python runs in Docker (host: macOS Big Sur, Docker Desktop 4.12).
 - Git: Phase Flow. Tags: `phase-N-*`.
 - Docs and code comments: English (ASD-STE100). Demo text: Traditional Chinese.
@@ -28,4 +30,4 @@ The user set these limits: no paid service, no API key, no network at run time.
 Read this file when you decide scope, stack, or environment limits.
 AI must IGNORE this spec if Status is Superseded.
 
-Related: docs/adr/ADR-0001-hexagonal-with-swappable-adapters.md
+Related: docs/adr/ADR-0001-hexagonal-with-swappable-adapters.md (superseded), docs/adr/ADR-0002-lightweight-mvc.md

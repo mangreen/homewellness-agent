@@ -7,9 +7,10 @@ Goal: a live demo that runs offline. Show the architecture and the idea.
 - Follow the development rules (Staff Engineer System Prompt v3.0).
 - Use TDD: write a failing test first. Then write the minimum code. Then refactor.
 - Test names: `should_<behavior>_when_<condition>`. Use the AAA pattern.
-- Keep Domain and Application free of framework and SDK imports.
+- Use MVC (`docs/architecture/mvc-overview.md`). Keep `models/`, `views/` and `controllers/` free of SDK imports (boto3, paho).
+  Import rules are tested in `tests/unit/test_architecture_rules.py`.
 - Never hard-code a secret. Use environment variables. Update `.env.example`.
-- Update `docs/architecture/domain-model.md` before you change the Domain layer.
+- Update `docs/architecture/mvc-overview.md` before you change a model.
 - Write docs and comments in English (ASD-STE100). Demo text may use Traditional Chinese.
 - Stop at the end of each phase. Ask the user to confirm.
 
