@@ -26,7 +26,8 @@ This repository is a live-demo PoC. It runs offline. It needs no API key.
 make test            # unit tests and the coverage gate (80%)
 make itest           # integration tests: DynamoDB Local and Mosquitto
 make demo-cli        # the whole story in the terminal (no other container, no network)
-make up              # start everything. Demo page: http://localhost:8501 (make open). API: http://localhost:8001
+make up              # start everything. Demo page: http://localhost:8501. API: http://localhost:8001
+make open            # open demo page: http://localhost:8501
 make uitest          # tests of the page (stub API)
 make rehearse        # the whole story through the real page and the real stack
 make sim S=morning   # device scenario: morning, dizzy, crisis
