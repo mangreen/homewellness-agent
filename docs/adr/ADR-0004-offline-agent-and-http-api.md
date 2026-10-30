@@ -9,7 +9,7 @@ A wrong or repeated alert is a real harm, so alerts need a safe design.
 
 ## Decision
 - The brain is `ScriptedChatModel`, a real LangChain chat model with keyword rules. It runs through `create_agent`, so the tool-calling loop is real.
-- A real LLM replaces it in `bootstrap._build_model` only.
+- A real LLM replaces it in the model factory only (Phase 6: ADR-0006-real-llm-providers.md).
 - Each tool is bound to one elder. The model cannot choose another elder.
 - `escalate_emergency` only asks. The code policy decides. A repeat within 10 minutes sends no second alert.
 - Live blood pressure is read by tool. It is not in the prompt. The prompt holds the slow facts: medicine, sleep, history.
@@ -38,4 +38,4 @@ A wrong or repeated alert is a real harm, so alerts need a safe design.
 The whole story (scenes A to D) runs as an API test and in `make demo-cli`. Ten same-key requests gave one 200 and nine 409.
 Ten chest-pain requests with different keys sent one alert. A real uvicorn process passed a smoke test.
 
-Related: MEM-0004-phase-3-agent-and-api.md
+Related: MEM-0004-phase-3-agent-and-api.md, ADR-0006-real-llm-providers.md

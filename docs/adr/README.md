@@ -12,6 +12,7 @@ Records are in three places: ADR (`docs/adr/`), MEM (`.agents/memories/`) and ER
 | ADR-0003-mqtt-topics-demo-clock-single-table.md | MQTT topics, demo clock, single-table DynamoDB | Accepted | 2026-10-28 |
 | ADR-0004-offline-agent-and-http-api.md | Offline agent, tools behind a policy, idempotent HTTP | Accepted | 2026-10-28 |
 | ADR-0005-streamlit-demo-ui.md | Streamlit demo UI over the HTTP API | Accepted | 2026-10-28 |
+| ADR-0006-real-llm-providers.md | Real LLM providers behind a factory, with an offline fallback | Accepted | 2026-10-29 |
 
 ## Memory records (MEM): what to know when you work on a part
 
@@ -22,6 +23,7 @@ Records are in three places: ADR (`docs/adr/`), MEM (`.agents/memories/`) and ER
 | MEM-0003-phase-2-data-pipeline.md | Topics, payloads, table layout, scenarios | Approved |
 | MEM-0004-phase-3-agent-and-api.md | Tools, policy, prompt contract, HTTP API | Approved |
 | MEM-0005-phase-4-demo-ui.md | Page, demo endpoints, rehearsal | Approved |
+| MEM-0006-real-llm-providers.md | Providers, variables, evaluation, limits | Approved |
 
 ## Error records (ERR): problems that cost time
 
@@ -43,6 +45,9 @@ flowchart LR
     ADR3["ADR-0003"] --- MEM3
     ADR4["ADR-0004"] --- MEM4
     ADR5["ADR-0005"] --- MEM5
+    MEM4 --> MEM6["MEM-0006 real LLM"]
+    ADR6["ADR-0006"] --- MEM6
+    ADR6 --- ADR4
 ```
 
 ## Rules for new records

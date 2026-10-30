@@ -1,6 +1,6 @@
 # MVC Architecture Overview
 
-Status: Phase 4. Update this file before you change a model.
+Status: Phase 6. Update this file before you change a model.
 Replaces: the DDD layer model (Domain, Application, Infrastructure). See ADR-0002.
 
 ## Packages
@@ -9,7 +9,7 @@ Replaces: the DDD layer model (Domain, Application, Infrastructure). See ADR-000
 | --- | --- | --- | --- |
 | `models/` | Model | Data classes and business rules. Pure code. No I/O. | standard library only |
 | `stores/` | Model (data access) | One store per kind of data. In-memory and DynamoDB versions. | `models` |
-| `services/` | Model (outside world) | Clock, notifier, MQTT client, LangChain agent runner, scripted model, activity log. | `models`, `interfaces` |
+| `services/` | Model (outside world) | Clock, notifier, MQTT client, LangChain agent runner, scripted model, model factory (`llm_factory.py`), activity log. | `models`, `interfaces` |
 | `controllers/` | Controller | Take an input, call models, stores and services, return a result. | `models`, `views`, `interfaces` |
 | `views/` | View | Text and format for people. Later: API JSON and the Streamlit page. | `models` |
 | `interfaces.py` | Seams | Small Protocols for what we may swap: stores, clock, notifier, agent. | `models` |
@@ -116,6 +116,19 @@ A device event starts the same flow without an elder message:
 | `log_medication_intake` | `MedicationController.record_intake` | writes one intake (atomic) |
 | `escalate_emergency` | `EscalationController.escalate` | the policy may refuse. One alert per 10 minutes. |
 
+### Brain selection (Phase 6)
+
+```mermaid
+flowchart LR
+    S["LLM_PROVIDER in .env"] --> F["llm_factory.build_chat_model"]
+    F -->|fake| M["ScriptedChatModel (offline)"]
+    F -->|anthropic, openai, openrouter| R["Real LLM (key and network)"]
+    R -- "fails" --> B["FallbackAgentRunner"] --> M
+    M & R --> A["LangChainAgentRunner: same tools, same policy"]
+```
+
+The tools, the alert policy and the idempotency are the same for every brain. Only the words change.
+
 ### Memory
 
 - Short term: the last 10 turns (`ConversationStore`).
@@ -132,6 +145,7 @@ A device event starts the same flow without an elder message:
 | `GET /elders/{id}/status` | vitals, level, sleep, doses | - |
 | `GET /alerts` | alerts that were sent | - |
 | `POST /sim/scenarios/{name}` | demo only: publish a scenario to MQTT | required |
+| `GET /demo/brain` | demo only: which brain answers (offline or a real LLM) | - |
 | `GET /demo/activity` | demo only: clock, device, trigger, tool and alert events | - |
 | `POST /demo/reset` | demo only: forget all data, move the clock back | required |
 | `GET /healthz` | 200 when connected to the broker and subscribed | - |

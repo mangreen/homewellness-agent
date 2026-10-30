@@ -27,7 +27,7 @@ The user set four limits: no paid service, no API key, no network at run time, a
 - ~~Layers: Domain, Application, Infrastructure, API~~ DEPRECATED: superseded by MEM-0002-mvc-architecture.md (MVC).
 
 **Stand-ins for the real product**
-- LLM: `ScriptedChatModel`, a real LangChain chat model with keyword rules.
+- LLM: `ScriptedChatModel`, a real LangChain chat model with keyword rules (default). Real providers since Phase 6: see MEM-0006-real-llm-providers.md.
 - Device channel: Mosquitto for AWS IoT Core. Storage: DynamoDB Local for Amazon DynamoDB.
 - Notifications: an alert list for Amazon SNS. The demo UI shows the list.
 
@@ -39,7 +39,7 @@ The user set four limits: no paid service, no API key, no network at run time, a
 - Secrets: none are needed. `.env` is ignored by git. Placeholders use `changeme`.
 
 **Out of scope**
-- Real LLM, Bedrock, voice (STT and TTS), Langflow, daily reports, authentication, multi-elder support.
+- Amazon Bedrock, voice (STT and TTS), Langflow, daily reports, authentication, multi-elder support. (A real LLM was out of scope until Phase 6.)
 
 ### Known Limits
 - Docker could not run in the build sandbox. The user verifies each phase on the Mac.
@@ -49,4 +49,4 @@ The user set four limits: no paid service, no API key, no network at run time, a
 Read this record when you decide scope, stack or environment limits.
 AI must IGNORE the layer bullet of this spec. It is superseded.
 
-Related: ADR-0001-hexagonal-with-swappable-adapters.md, ADR-0002-lightweight-mvc.md, MEM-0002-mvc-architecture.md
+Related: ADR-0001-hexagonal-with-swappable-adapters.md, ADR-0002-lightweight-mvc.md, MEM-0002-mvc-architecture.md, MEM-0006-real-llm-providers.md

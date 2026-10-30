@@ -13,7 +13,8 @@ This repository is a live-demo PoC. It runs offline. It needs no API key.
 | 2 | DynamoDB stores, MQTT, device simulator | Done |
 | 3 | Agent (LangChain, tools), HTTP API, terminal demo | Done |
 | 4 | Streamlit demo UI, rehearsal, speaker script | Done |
-| 5 | Complete decision records, error records, slides | Done, waiting for review |
+| 5 | Complete decision records, error records, slides | Done |
+| 6 | Real LLM providers (Claude, OpenAI, OpenRouter) with an offline fallback | Done, waiting for review |
 
 ## Requirements
 
@@ -40,6 +41,19 @@ make down
 
 The first build needs network access. After that, everything runs offline.
 If your `.env` is older than `.env.example`, copy the new lines into it.
+
+## Use a real LLM (optional)
+
+The default brain is an offline scripted model. To use a real LLM you need a key and a network.
+
+1. Edit `.env`: set `LLM_PROVIDER` to `anthropic`, `openai` or `openrouter`, and set the key of that provider.
+   Optional: `LLM_MODEL` (default: `claude-haiku-5-5`, `gpt-5.4-mini`, `nvidia/nemotron-3-ultra-550b-a55b:free`).
+2. `docker compose up -d app`, then `make brain` (or look under the page title) to see which brain answers.
+3. `make llm-eval` runs nine fixed safety cases against that brain. Run it before you demo with it.
+
+If the provider fails, the offline model answers (`LLM_FALLBACK=true`). Conversation data and health values
+go to the provider. The demo elder is fictional. Do not type real personal data.
+A free OpenRouter model can log prompts, and it may be slow or unavailable. Use the offline model for the formal demo.
 
 ## The demo story
 

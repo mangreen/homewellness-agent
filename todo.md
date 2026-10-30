@@ -42,4 +42,12 @@
 - [ ] User checks the slides in the browser and exports PDF or PPTX
 - [ ] User records the backup screen video
 
+## Phase 6: Real LLM providers
+- [x] Factory for Claude, OpenAI and OpenRouter, keys from the environment, hidden from logs
+- [x] Offline fallback runner, `GET /demo/brain`, page label and data warning
+- [x] Prompt rules for real models, behavior evaluation (`make llm-eval`)
+- [x] Fake OpenAI-compatible server test, real Anthropic endpoint test with an invalid key
+- [ ] User runs `make llm-eval` with a real key and a network, for each provider that they want
+- [ ] User decides which brain to use in the formal demo (offline is the safe choice)
+
 ## Later

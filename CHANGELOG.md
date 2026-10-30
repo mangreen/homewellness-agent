@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Phase 6: real LLM providers (Claude, OpenAI, OpenRouter) behind `LLM_PROVIDER`, offline fallback, `GET /demo/brain`, `make llm-eval`, `make brain`.
 - Phase 5: complete decision records (ADR and MEM), decision index, three error records, a test that keeps them linked.
 - Phase 4: Streamlit demo page, activity timeline, `POST /demo/reset`, `make uitest`, `make rehearse`, demo script.
 - Phase 3: scripted LangChain agent with 4 tools, proactive greeting, FastAPI with idempotency and trace-id, OpenAPI file, `make demo-cli`, `make say`. The old worker and health modules are removed.

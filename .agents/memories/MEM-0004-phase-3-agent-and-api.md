@@ -45,9 +45,10 @@ Phase 4 added the demo endpoints (MEM-0005-phase-4-demo-ui.md).
 ### Known Limits
 - Run one uvicorn process: the clock, the alert list and the subscriber live in it.
 - The scripted model knows fixed phrases only. There is no authentication.
+- Real LLM providers: see MEM-0006-real-llm-providers.md (Phase 6).
 
 ## When to Use
 Read this record when you change the agent, the tools, the prompt, the policy or the API.
 AI must IGNORE this spec if Status is Superseded.
 
-Related: ADR-0004-offline-agent-and-http-api.md, MEM-0003-phase-2-data-pipeline.md, MEM-0005-phase-4-demo-ui.md
+Related: ADR-0004-offline-agent-and-http-api.md, MEM-0003-phase-2-data-pipeline.md, MEM-0005-phase-4-demo-ui.md, MEM-0006-real-llm-providers.md
