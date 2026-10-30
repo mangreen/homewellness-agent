@@ -73,3 +73,13 @@ def should_return_no_events_when_the_api_is_not_in_demo_mode():
 def should_report_health_as_a_boolean():
     assert client_for(lambda r: httpx.Response(200, json={"status": "ok"})).health() is True
     assert client_for(lambda r: httpx.Response(503, json={"status": "starting"})).health() is False
+
+
+def should_return_the_brain_description_when_the_api_has_one():
+    brain = {"provider": "fake", "model": "scripted", "external": False, "fallback": False}
+    assert client_for(lambda r: httpx.Response(200, json=brain)).brain() == brain
+
+
+def should_return_none_for_the_brain_when_the_api_is_not_in_demo_mode():
+    body = {"error": {"code": "not_found", "message": "m", "trace_id": "t"}}
+    assert client_for(lambda r: httpx.Response(404, json=body)).brain() is None

@@ -10,7 +10,9 @@ from view_models import (
     SCENARIOS,
     activity_rows,
     alert_row,
+    brain_label,
     dose_rows,
+    external_warning,
     level_badge,
     local_time,
 )
@@ -89,7 +91,12 @@ with st.sidebar:
     st.caption(f"API：{os.environ.get('API_URL', 'http://localhost:8001')}")
 
 st.title("🏠 HomeWellness Companion")
-st.caption("主動式健康關懷與用藥提醒｜離線 Demo：不連外網、不需金鑰")
+st.caption("主動式健康關懷與用藥提醒｜預設離線：不連外網、不需金鑰")
+brain = guarded(client.brain)
+if brain:
+    st.caption(f"大腦：{brain_label(brain)}")
+if external_warning(brain):
+    st.warning(external_warning(brain))
 
 chat, devices, live = st.columns([5, 3, 4], gap="large")
 
@@ -117,7 +124,8 @@ with chat:
                 chosen = QUICK_REPLIES[index]
     message = chosen or st.chat_input("或自己輸入…")
     if message:
-        guarded(client.send_message, message)
+        with st.spinner("Agent 思考中…"):
+            guarded(client.send_message, message)
     with history:
         conversation_view(client)
 

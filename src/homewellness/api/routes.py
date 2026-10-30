@@ -13,6 +13,7 @@ from homewellness.api.schemas import (
     ActivityResponse,
     AlertOut,
     AlertsResponse,
+    BrainOut,
     ConversationResponse,
     DoseOut,
     ErrorResponse,
@@ -153,3 +154,11 @@ def reset_demo(request: Request, key: IdemKey) -> ResetResponse:
     with idempotent(container.claims, "demo-reset", key):
         container.reset()
     return ResetResponse(status="reset")
+
+
+@router.get("/demo/brain", response_model=BrainOut, responses=_ERRORS, tags=["demo"])
+def get_brain(request: Request) -> BrainOut:
+    """Demo only. Which brain answers: the offline model or a real LLM. It never shows a key."""
+    brain = _demo_container(request).brain
+    return BrainOut(provider=brain.provider, model=brain.model, external=brain.external,
+                    fallback=brain.fallback)

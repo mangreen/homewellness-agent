@@ -73,6 +73,14 @@ class ApiClient:
                 return []
             raise
 
+    def brain(self) -> dict | None:
+        try:
+            return self._call("GET", "/demo/brain")
+        except ApiError as error:
+            if error.status == 404:  # Not in demo mode.
+                return None
+            raise
+
     def start_scenario(self, name: str) -> dict:
         return self._call("POST", f"/sim/scenarios/{name}", headers=self._key())
 

@@ -417,6 +417,57 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Service Unavailable
+  /demo/brain:
+    get:
+      tags:
+      - demo
+      summary: Get Brain
+      description: 'Demo only. Which brain answers: the offline model or a real LLM.
+        It never shows a key.'
+      operationId: get_brain_demo_brain_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrainOut'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     ActivityEventOut:
@@ -487,6 +538,27 @@ components:
       required:
       - alerts
       title: AlertsResponse
+    BrainOut:
+      properties:
+        provider:
+          type: string
+          title: Provider
+        model:
+          type: string
+          title: Model
+        external:
+          type: boolean
+          title: External
+        fallback:
+          type: boolean
+          title: Fallback
+      type: object
+      required:
+      - provider
+      - model
+      - external
+      - fallback
+      title: BrainOut
     ConversationResponse:
       properties:
         turns:

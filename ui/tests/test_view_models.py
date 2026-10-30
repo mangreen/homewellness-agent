@@ -43,3 +43,24 @@ def should_list_activity_newest_first_with_an_icon():
 def should_offer_three_scenarios_and_four_quick_replies():
     assert [s[0] for s in vm.SCENARIOS] == ["morning", "dizzy", "crisis"]
     assert len(vm.QUICK_REPLIES) == 4
+
+
+def should_label_the_offline_brain_without_a_warning():
+    assert vm.brain_label({"provider": "fake", "model": "scripted", "external": False,
+                           "fallback": False}) == "🧩 離線模型（不連外網）"
+
+
+def should_label_a_real_brain_with_the_provider_and_the_model():
+    brain = {"provider": "anthropic", "model": "claude-haiku-5-5", "external": True, "fallback": True}
+    assert vm.brain_label(brain) == "☁️ Claude｜claude-haiku-5-5（失敗時改用離線模型）"
+    brain.update(provider="openrouter", fallback=False)
+    assert vm.brain_label(brain) == "☁️ OpenRouter｜claude-haiku-5-5"
+
+
+def should_show_no_label_when_the_brain_is_unknown():
+    assert vm.brain_label(None) == ""
+
+
+def should_use_a_brain_icon_for_the_fallback_event():
+    row = vm.activity_rows([{"at": "2026-10-28T00:05:00+00:00", "kind": "llm", "text": "改用離線模型"}])
+    assert row == ["🧠 08:05:00　改用離線模型"]

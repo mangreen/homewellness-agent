@@ -277,3 +277,26 @@ def should_forget_the_story_when_the_demo_is_reset(client):
 
 def should_answer_400_when_the_reset_has_no_idempotency_key(client):
     assert client.post("/demo/reset").status_code == 400
+
+
+def should_describe_the_brain_when_the_demo_brain_is_requested(client):
+    assert client.get("/demo/brain").json() == {
+        "provider": "fake", "model": "scripted", "external": False, "fallback": False}
+
+
+def should_tell_that_the_brain_is_external_when_a_real_provider_is_set(publisher):
+    from homewellness.bootstrap import build_container
+    from homewellness.settings import Settings
+
+    settings = Settings(store_backend="memory", demo_mode=True, llm_provider="openrouter",
+                        openrouter_api_key="k")
+    app = create_app(build_container(settings), publisher=publisher)
+    brain = TestClient(app).get("/demo/brain").json()
+    assert (brain["provider"], brain["external"], brain["fallback"]) == ("openrouter", True, True)
+    assert "key" not in str(brain).lower()
+
+
+def should_answer_404_for_the_brain_when_demo_mode_is_off(container, publisher):
+    container.settings = type(container.settings)(store_backend="memory", demo_mode=False)
+    client = TestClient(create_app(container, publisher=publisher))
+    assert client.get("/demo/brain").status_code == 404

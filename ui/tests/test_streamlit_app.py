@@ -19,12 +19,16 @@ EVENT = {"at": "2026-10-28T00:05:00+00:00", "kind": "tool", "text": "Agent 呼�
 
 
 class StubClient:
-    def __init__(self, turns=(), alerts=(), events=()):
+    def __init__(self, turns=(), alerts=(), events=(), brain=None):
         self.calls = []
+        self._brain = brain
         self.turns, self._alerts, self.events = list(turns), list(alerts), list(events)
 
     def health(self):
         return True
+
+    def brain(self):
+        return self._brain
 
     def conversation(self, limit=30):
         return self.turns
@@ -132,3 +136,17 @@ def should_explain_what_to_do_when_the_api_is_unreachable():
 
     at = open_page(Down())
     assert not at.exception and any("make up" in e.value for e in at.error)
+
+
+def should_show_the_offline_brain_without_a_warning():
+    at = open_page(StubClient(brain={"provider": "fake", "model": "scripted", "external": False,
+                                     "fallback": False}))
+    assert any("離線模型" in c.value for c in at.caption)
+    assert not any("資料會送到" in w.value for w in at.warning)
+
+
+def should_warn_that_data_leaves_the_machine_when_the_brain_is_external():
+    at = open_page(StubClient(brain={"provider": "openrouter", "model": "m:free", "external": True,
+                                     "fallback": True}))
+    assert any("OpenRouter" in c.value for c in at.caption)
+    assert any("資料會送到 OpenRouter" in w.value for w in at.warning)

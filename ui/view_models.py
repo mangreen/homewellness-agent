@@ -18,7 +18,8 @@ _LEVEL = {"low": "🔵 偏低", "normal": "🟢 正常", "elevated": "🟡 偏�
           "critical": "🔴 危急"}
 _DOSE_STATE = {"upcoming": "⏳ 尚未到時間", "due": "⏰ 該吃了", "taken": "✅ 已吃",
                "missed": "⚠️ 逾時未吃"}
-_EVENT_ICON = {"clock": "🕗", "device": "📡", "trigger": "⚡", "tool": "🔧", "alert": "🚨"}
+_EVENT_ICON = {"clock": "🕗", "device": "📡", "trigger": "⚡", "tool": "🔧", "alert": "🚨",
+               "llm": "🧠"}
 _ACTION = {"notify_family": "通知家人", "call_emergency": "緊急通報"}
 _RECIPIENT = {"family": "家人", "emergency_services": "緊急聯絡窗口"}
 
@@ -51,3 +52,23 @@ def activity_rows(events: list[dict]) -> list[str]:
         f"{_EVENT_ICON.get(e['kind'], '•')} {local_time(e['at'], with_seconds=True)}　{e['text']}"
         for e in reversed(events)
     ]
+
+
+_PROVIDER = {"anthropic": "Claude", "openai": "OpenAI", "openrouter": "OpenRouter"}
+
+
+def brain_label(brain: dict | None) -> str:
+    if not brain:
+        return ""
+    if not brain["external"]:
+        return "🧩 離線模型（不連外網）"
+    note = "（失敗時改用離線模型）" if brain["fallback"] else ""
+    return f"☁️ {_PROVIDER.get(brain['provider'], brain['provider'])}｜{brain['model']}{note}"
+
+
+def external_warning(brain: dict | None) -> str | None:
+    if not brain or not brain["external"]:
+        return None
+    name = _PROVIDER.get(brain["provider"], brain["provider"])
+    return (f"目前使用外部 LLM：對話內容與健康資料會送到 {name}。"
+            "Demo 只用虛構資料，請勿輸入真實個資。")

@@ -63,6 +63,13 @@ class ScenarioResponse(BaseModel):
     published: int
 
 
+class BrainOut(BaseModel):
+    provider: str
+    model: str
+    external: bool  # True when conversation data goes to a third party.
+    fallback: bool
+
+
 class ActivityEventOut(BaseModel):
     at: datetime
     kind: str
