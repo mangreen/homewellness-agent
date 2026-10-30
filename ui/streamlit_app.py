@@ -122,7 +122,9 @@ with chat:
         for column, index in zip(st.columns(2), (row, row + 1), strict=True):
             if column.button(QUICK_REPLIES[index], key=f"q-{index}"):
                 chosen = QUICK_REPLIES[index]
-    message = chosen or st.chat_input("或自己輸入…")
+    # NOTE: Draw the box first. `chosen or st.chat_input(...)` would skip the box after a click.
+    typed = st.chat_input("或自己輸入…")
+    message = chosen or typed
     if message:
         with st.spinner("Agent 思考中…"):
             guarded(client.send_message, message)

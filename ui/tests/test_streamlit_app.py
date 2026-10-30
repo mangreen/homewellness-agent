@@ -150,3 +150,32 @@ def should_warn_that_data_leaves_the_machine_when_the_brain_is_external():
                                      "fallback": True}))
     assert any("OpenRouter" in c.value for c in at.caption)
     assert any("資料會送到 OpenRouter" in w.value for w in at.warning)
+
+
+@pytest.mark.parametrize("index", [0, 1, 2, 3])
+def should_keep_the_text_box_after_a_quick_reply_is_clicked(index):
+    """Regression: `chosen or st.chat_input(...)` skipped the box when a button was clicked."""
+    at = open_page(StubClient())
+    assert len(at.chat_input) == 1
+    at.button(key=f"q-{index}").click().run()
+    assert len(at.chat_input) == 1
+
+
+@pytest.mark.parametrize("key", ["sc-morning", "sc-dizzy", "sc-crisis", "reset"])
+def should_keep_the_text_box_after_a_scenario_or_reset_is_clicked(key):
+    at = open_page(StubClient())
+    at.button(key=key).click().run()
+    assert len(at.chat_input) == 1
+
+
+def should_keep_the_text_box_after_many_clicks_in_a_row():
+    at = open_page(StubClient())
+    for key in ("q-0", "q-1", "q-2", "q-0", "sc-dizzy", "q-3", "q-1"):
+        at.button(key=key).click().run()
+        assert len(at.chat_input) == 1, f"the text box is missing after {key}"
+
+
+def should_keep_the_text_box_after_a_typed_message():
+    at = open_page(StubClient())
+    at.chat_input[0].set_value("你好").run()
+    assert len(at.chat_input) == 1

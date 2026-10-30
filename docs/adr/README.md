@@ -32,6 +32,7 @@ Records are in three places: ADR (`docs/adr/`), MEM (`.agents/memories/`) and ER
 | ERR-20261027-compose-run-build-flag.md | Medium |
 | ERR-20261028-test-container-missing-docs.md | Medium |
 | ERR-20261028-streamlit-emoji-icon.md | Medium |
+| ERR-20261030-chat-input-short-circuit.md | Medium |
 
 ## How the records relate
 

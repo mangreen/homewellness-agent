@@ -22,6 +22,7 @@ The speaker script is `docs/demo-script.md` (Traditional Chinese). The slides ar
 
 ### Known Limits
 - Streamlit turns a leading emoji of an alert into its icon. Tests must match the text, not the emoji.
+- Draw every widget in every run. Do not write `button or st.chat_input(...)`: the box would vanish after a click.
 - The agent knows fixed phrases only. Use the buttons in the demo.
 - A backup screen video is not in the repository. The user must record it.
 

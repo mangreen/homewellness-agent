@@ -34,6 +34,7 @@ def wait_until(at, condition, what, timeout=20.0):
     deadline = time.monotonic() + timeout
     while True:
         at.run()
+        assert len(at.chat_input) == 1, "the text box disappeared"
         if condition(at):
             return
         if time.monotonic() > deadline:
