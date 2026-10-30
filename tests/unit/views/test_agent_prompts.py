@@ -57,3 +57,21 @@ def should_skip_a_trigger_when_its_data_is_incomplete():
     incomplete = [ProactiveTrigger(TriggerKind.MEDICATION_DUE, "m"),
                   ProactiveTrigger(TriggerKind.POOR_SLEEP, "s", sleep_hours=5.0)]
     assert render_event_message(incomplete, "降血壓藥") == "[SYSTEM_EVENT] kind=poor_sleep hours=5"
+
+
+def should_tell_the_model_when_to_call_each_tool(env):
+    prompt = render_system_prompt(context(env))
+    for expected in ("先呼叫 get_latest_vitals", "再呼叫 escalate_emergency",
+                     "log_medication_intake", "get_medication_status"):
+        assert expected in prompt
+
+
+def should_forbid_a_false_claim_of_an_alert_and_an_invented_number(env):
+    prompt = render_system_prompt(context(env))
+    assert "status 為 sent 或 duplicate" in prompt and "不可說已通知" in prompt
+    assert "不要編造數字" in prompt
+
+
+def should_explain_the_system_event_and_the_answer_style(env):
+    prompt = render_system_prompt(context(env))
+    assert "[SYSTEM_EVENT]" in prompt and "繁體中文" in prompt and "不超過三句話" in prompt

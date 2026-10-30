@@ -8,8 +8,6 @@ from collections import deque
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
-from langchain_core.language_models.chat_models import BaseChatModel
-
 from homewellness.controllers.agent_actions import AgentActionsController
 from homewellness.controllers.chat import ChatController
 from homewellness.controllers.escalation import EscalationController
@@ -21,8 +19,9 @@ from homewellness.interfaces import ClaimStore, Clock
 from homewellness.models.interaction import Notification
 from homewellness.models.trigger_policy import ProactiveTrigger, TriggerKind
 from homewellness.services.activity import ActivityLog
-from homewellness.services.agent import LangChainAgentRunner
+from homewellness.services.agent import FallbackAgentRunner, LangChainAgentRunner
 from homewellness.services.clock import SimulatedClock, SystemClock
+from homewellness.services.llm_factory import BrainInfo, build_chat_model, describe_brain
 from homewellness.services.notifier import RecordingNotifier
 from homewellness.services.scripted_model import ScriptedChatModel
 from homewellness.settings import Settings
@@ -59,6 +58,7 @@ class Container:
     claims: ClaimStore
     activity: ActivityLog
     reset_state: Callable[[], None]  # Forget stored data and move the demo clock back.
+    brain: BrainInfo
     # The newest proactive triggers, kept for the demo views.
     triggers: deque = field(default_factory=lambda: deque(maxlen=100))
 
@@ -80,20 +80,14 @@ class Container:
         self.activity.clear()
 
 
-def _build_model(settings: Settings) -> BaseChatModel:
-    if settings.llm_provider == "fake":
-        return ScriptedChatModel()
-    # NOTE: Add a real provider here, for example Amazon Bedrock. No controller changes.
-    raise ValueError(f"LLM_PROVIDER {settings.llm_provider!r} is not implemented")
-
-
 def build_container(
     settings: Settings,
     *,
     clock: Clock | None = None,
     on_tool_call: Callable[[str, str], None] | None = None,
 ) -> Container:
-    model = _build_model(settings)
+    model = build_chat_model(settings)  # Fails at start-up when a key is missing.
+    brain = describe_brain(settings)
     base_clock = clock or SystemClock()
     # In demo mode the scenario can move the clock. Otherwise the clock stays real.
     demo_clock = SimulatedClock(base_clock) if settings.demo_mode else None
@@ -144,9 +138,15 @@ def build_container(
         elders=elders, telemetry=telemetry_store, intakes=intakes, medication=medication,
         escalation=escalation, clock=active_clock, on_call=observe_tool,
     )
+    agent = LangChainAgentRunner(model, actions)
+    if brain.external and brain.fallback:
+        agent = FallbackAgentRunner(
+            agent, LangChainAgentRunner(ScriptedChatModel(), actions),
+            on_fallback=lambda: activity.add("llm", "外部 LLM 暫時無法使用，改用離線模型"),
+        )
     chat = ChatController(
         elders=elders, telemetry=telemetry_store, intakes=intakes, conversations=conversations,
-        agent=LangChainAgentRunner(model, actions), clock=active_clock,
+        agent=agent, clock=active_clock,
     )
     telemetry = TelemetryController(
         elders=elders, telemetry=telemetry_store, intakes=intakes, claims=claims,
@@ -161,7 +161,7 @@ def build_container(
     )
     container = Container(
         settings, active_clock, telemetry, medication, escalation, actions, chat,
-        mqtt_controller, notifier, claims, activity, reset_state,
+        mqtt_controller, notifier, claims, activity, reset_state, brain,
     )
     holder.append(container)
     return container

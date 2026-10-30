@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "homewellness"
-SDKS = ("boto3", "botocore", "paho")
+SDKS = ("boto3", "botocore", "paho", "langchain_openai", "langchain_anthropic", "openai",
+        "anthropic")
 H = "homewellness."
 
 # package -> modules that it must not import

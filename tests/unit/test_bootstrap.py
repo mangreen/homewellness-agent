@@ -106,3 +106,40 @@ def should_forget_everything_and_allow_a_replay_when_the_container_is_reset():
     assert container.clock.now() == taipei(15, 0)
     play(container, "morning")  # The claims are gone, so the greeting comes again.
     assert len(container.chat.history(DEMO_ELDER_ID, 10)) == 1
+
+
+def should_describe_the_offline_brain_when_the_provider_is_fake():
+    brain = build_container(Settings(store_backend="memory")).brain
+    assert (brain.provider, brain.model, brain.external, brain.fallback) == (
+        "fake", "scripted", False, False)
+
+
+def should_describe_an_external_brain_with_a_fallback_when_a_real_provider_is_set():
+    settings = Settings(store_backend="memory", llm_provider="openrouter", openrouter_api_key="k")
+    brain = build_container(settings).brain
+    assert (brain.provider, brain.model, brain.external, brain.fallback) == (
+        "openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free", True, True)
+
+
+def should_not_use_a_fallback_when_it_is_switched_off():
+    settings = Settings(store_backend="memory", llm_provider="anthropic", anthropic_api_key="k",
+                        llm_fallback=False)
+    assert build_container(settings).brain.fallback is False
+
+
+def should_stop_at_start_up_when_the_key_of_the_provider_is_missing():
+    import pytest
+
+    with pytest.raises(ValueError, match="OPENAI_API_KEY"):
+        build_container(Settings(store_backend="memory", llm_provider="openai"))
+
+
+def should_answer_with_the_offline_model_and_log_it_when_the_real_provider_cannot_be_reached():
+    settings = Settings(
+        store_backend="memory", demo_mode=True, llm_provider="openrouter", openrouter_api_key="k",
+        openrouter_base_url="http://127.0.0.1:9/v1", llm_timeout_seconds=2.0,
+    )
+    container = build_container(settings, clock=FixedClock(taipei(15, 0)))
+    reply = container.chat.reply(DEMO_ELDER_ID, "你好")
+    assert "王奶奶" in reply  # The scripted model answered.
+    assert any(e.kind == "llm" for e in container.activity.recent(10))

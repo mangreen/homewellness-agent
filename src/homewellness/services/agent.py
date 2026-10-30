@@ -2,6 +2,7 @@
 
 import json
 import logging
+from collections.abc import Callable
 from typing import Literal
 
 from langchain.agents import create_agent
@@ -9,7 +10,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langchain_core.tools import tool
 
-from homewellness.interfaces import AgentActions
+from homewellness.interfaces import AgentActions, AgentRunner
 from homewellness.models.errors import AgentUnavailableError
 from homewellness.models.interaction import AgentRequest, Role
 
@@ -88,3 +89,31 @@ class LangChainAgentRunner:
         if not text.strip():
             raise AgentUnavailableError("the agent returned an empty answer")
         return text
+
+
+class FallbackAgentRunner:
+    """Ask the primary runner. If it is unavailable, ask the backup (the offline model).
+
+    NOTE: The primary may have run a tool before it failed. The tools are idempotent,
+    so the backup repeats them safely: no second intake and no second alert.
+    """
+
+    def __init__(
+        self,
+        primary: AgentRunner,
+        backup: AgentRunner,
+        on_fallback: Callable[[], None] | None = None,
+    ) -> None:
+        self._primary = primary
+        self._backup = backup
+        self._on_fallback = on_fallback
+
+    def reply(self, request: AgentRequest) -> str:
+        try:
+            return self._primary.reply(request)
+        except AgentUnavailableError as error:
+            cause = type(error.__cause__).__name__
+            logger.warning("llm fallback", extra={"event": "llm_fallback", "error_type": cause})
+            if self._on_fallback is not None:
+                self._on_fallback()
+            return self._backup.reply(request)
