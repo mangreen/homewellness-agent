@@ -30,4 +30,11 @@ class IdempotencyKeyError(DomainError):
 
 
 class AgentUnavailableError(DomainError):
-    """The agent could not produce an answer."""
+    """The agent could not produce an answer.
+
+    `detail` explains why (for the evaluation tool). It is never sent to an API client.
+    """
+
+    def __init__(self, message: str, detail: str = "") -> None:
+        super().__init__(message)
+        self.detail = detail

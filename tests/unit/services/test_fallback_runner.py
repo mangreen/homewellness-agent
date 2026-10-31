@@ -1,3 +1,5 @@
+import httpx
+import openai
 import pytest
 
 from builders import make_health_context
@@ -21,15 +23,15 @@ class Runner:
 
 def should_use_the_primary_answer_when_it_works():
     primary, backup, events = Runner("real"), Runner("offline"), []
-    assert FallbackAgentRunner(primary, backup, lambda: events.append(1)).reply(REQUEST) == "real"
+    assert FallbackAgentRunner(primary, backup, events.append).reply(REQUEST) == "real"
     assert (backup.calls, events) == (0, [])
 
 
 def should_use_the_backup_and_tell_the_observer_when_the_primary_is_unavailable():
     primary = Runner(error=AgentUnavailableError("down"))
     backup, events = Runner("offline"), []
-    reply = FallbackAgentRunner(primary, backup, lambda: events.append(1)).reply(REQUEST)
-    assert (reply, backup.calls, events) == ("offline", 1, [1])
+    reply = FallbackAgentRunner(primary, backup, events.append).reply(REQUEST)
+    assert (reply, backup.calls, events) == ("offline", 1, ["unknown"])
 
 
 def should_work_without_an_observer():
@@ -48,3 +50,13 @@ def should_not_hide_an_unexpected_error_of_the_primary():
     runner = FallbackAgentRunner(Runner(error=KeyError("bug")), Runner("offline"))
     with pytest.raises(KeyError):
         runner.reply(REQUEST)
+
+
+def should_tell_the_error_type_and_the_status_but_not_the_message():
+    response = httpx.Response(404, request=httpx.Request("POST", "https://x/v1"))
+    cause = openai.NotFoundError("secret detail", response=response, body=None)
+    error = AgentUnavailableError("down")
+    error.__cause__ = cause
+    events = []
+    FallbackAgentRunner(Runner(error=error), Runner("offline"), events.append).reply(REQUEST)
+    assert events == ["NotFoundError, HTTP 404"] and "secret" not in events[0]

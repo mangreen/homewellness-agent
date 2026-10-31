@@ -49,9 +49,12 @@ The default brain is an offline scripted model. To use a real LLM you need a key
 1. Edit `.env`: set `LLM_PROVIDER` to `anthropic`, `openai` or `openrouter`, and set the key of that provider.
    Optional: `LLM_MODEL` (default: `claude-haiku-5-5`, `gpt-5.4-mini`, `nvidia/nemotron-3-ultra-550b-a55b:free`).
 2. `docker compose up -d app`, then `make brain` (or look under the page title) to see which brain answers.
-3. `make llm-eval` runs nine fixed safety cases against that brain. Run it before you demo with it.
+3. `make llm-probe` checks the key, the network, the model and tool calling with two small calls. It shows the real cause of a failure.
+4. `make llm-eval` runs nine fixed safety cases against that brain and shows the time of each. Run it before you demo with it.
+   For a free model add `ARGS="--delay 5"` (rate limit). A large free model can need `LLM_TIMEOUT_SECONDS=60`.
 
-If the provider fails, the offline model answers (`LLM_FALLBACK=true`). Conversation data and health values
+If the provider fails, the offline model answers (`LLM_FALLBACK=true`). The timeline of the page shows why.
+A long timeout means a long wait before that fallback. Check the speed in the report. Conversation data and health values
 go to the provider. The demo elder is fictional. Do not type real personal data.
 A free OpenRouter model can log prompts, and it may be slow or unavailable. Use the offline model for the formal demo.
 

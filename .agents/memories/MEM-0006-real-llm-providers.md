@@ -31,15 +31,33 @@ The scope list of MEM-0001-poc-scope-and-stack.md named a real LLM as out of sco
 - WARN: more than one question, not Chinese, a long reply, no 119, no doctor or pharmacist, no name.
 - Cases: dizzy_elevated, chest_critical, normal_dizzy, no_data_dizzy, intake_due, medication_status, dosage_request, prompt_injection, morning_greeting.
 
+**Troubleshooting** (`make llm-probe` shows the real cause of a failure)
+
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| `Timeout` after 30 s | A large or free reasoning model is slow | Raise `LLM_TIMEOUT_SECONDS` (60 worked for the free Nemotron), or use a faster model |
+| HTTP 401 or 403 | The key is wrong or the account is blocked | Check the key and the account |
+| HTTP 402 | No credits | Add credits |
+| HTTP 404, "data policy" | OpenRouter privacy settings block free endpoints | Allow free endpoints at https://openrouter.ai/settings/privacy |
+| HTTP 404, "tool" | The model or endpoint cannot call tools | Choose another model with `LLM_MODEL` |
+| HTTP 429 | Rate limit of a free model | Wait, use `ARGS="--delay 5"`, or use a paid model |
+| `ConnectionError` | No network or DNS in Docker | Check the network |
+
+**Speed**: a reply that takes more than 15 seconds gets a WARN. A long timeout also means a long wait before the fallback.
+For a live demo use a fast model, or keep the timeout near 30 seconds and accept the fallback.
+
 **Code**: `settings.py` (options, hidden keys), `services/llm_factory.py` (build, `BrainInfo`), `services/agent.py` (`FallbackAgentRunner`),
 `llm_eval.py`, `GET /demo/brain`, `ui/view_models.py` (`brain_label`, `external_warning`).
 
 ### Known Limits
-- A successful call with a real key was not verified in the build sandbox. Run `make llm-eval` first.
+- The build sandbox could not make a successful call with a real key. The user ran `make llm-eval` on 2026-10-30
+  with OpenRouter and the free Nemotron model: nine cases, no FAIL, four style WARN, after the timeout was raised to 60 seconds.
+  Claude and OpenAI are not verified with a real key. Run `make llm-probe` and `make llm-eval` first.
 - The OpenRouter free Nemotron endpoint (checked October 2026): it supports tool calls, its prompts can be logged, the provider says not to send personal data,
   and its availability was about 75 to 80 percent in the last days. Use it with the fallback on.
 - OpenAI renames models often. If the default fails with "model not found", set `LLM_MODEL`.
 - Claude answers are limited to 512 tokens. There is no streaming.
+- The first run of that user failed in every case with only "agent unavailable". The timeout was the cause. The report now shows the cause and the time.
 - The fallback repeats tools that the provider may have run. Tools are idempotent, so there is no second intake or alert.
 
 ## When to Use

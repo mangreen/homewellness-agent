@@ -86,3 +86,21 @@ def should_send_a_title_header_to_openrouter(server):
     model = build_chat_model(settings, http_client=client)
     LangChainAgentRunner(model, FakeActions()).reply(request)
     assert seen[0][0].headers["x-title"] == "HomeWellness Companion PoC"
+
+
+def should_give_the_provider_message_in_the_detail_when_the_provider_refuses():
+    from homewellness.models.errors import AgentUnavailableError
+
+    def handler(request):
+        return httpx.Response(404, json={"error": {
+            "message": "No endpoints found matching your data policy", "code": 404}})
+
+    settings = Settings(store_backend="memory", llm_provider="openrouter", openrouter_api_key="k")
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    model = build_chat_model(settings, http_client=client)
+    request = AgentRequest("e1", "你好", make_health_context("e1"), (), SYSTEM)
+    with pytest.raises(AgentUnavailableError) as caught:
+        LangChainAgentRunner(model, FakeActions()).reply(request)
+    assert "NotFoundError (HTTP 404)" in caught.value.detail
+    assert "data policy" in caught.value.detail and "settings/privacy" in caught.value.detail
+    assert "data policy" not in str(caught.value)  # The public message stays short.

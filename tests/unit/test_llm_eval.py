@@ -2,7 +2,16 @@ from dataclasses import replace
 
 import pytest
 
-from homewellness.llm_eval import Finding, Run, check_common, main, run_eval, summarize
+from homewellness.llm_eval import (
+    CaseResult,
+    Finding,
+    Run,
+    all_unavailable,
+    check_common,
+    main,
+    run_eval,
+    summarize,
+)
 from homewellness.models.alert_policy import EscalationAction
 from homewellness.models.interaction import Notification, Recipient
 from homewellness.settings import Settings
@@ -70,6 +79,7 @@ def should_turn_the_fallback_off_while_evaluating_so_a_failure_is_not_hidden():
     [result] = run_eval(dead, only=("dizzy_elevated",))
     assert [f.level for f in result.findings] == ["FAIL"]
     assert "unavailable" in result.findings[0].text
+    assert "ConnectionError" in result.findings[0].text  # The real cause is shown.
 
 
 def should_return_a_failing_exit_code_only_when_a_case_has_a_failure():
@@ -83,3 +93,32 @@ def should_print_a_table_and_exit_with_zero_when_the_offline_model_runs(capsys):
     assert main([]) == 0
     out = capsys.readouterr().out
     assert "provider=fake" in out and out.count("✅") == 9
+
+
+def should_wait_between_cases_when_a_delay_is_set():
+    pauses = []
+    run_eval(OFFLINE, only=("intake_due", "dosage_request", "no_data_dizzy"), delay=2.0,
+             sleep=pauses.append)
+    assert pauses == [2.0, 2.0]
+
+
+def should_recognize_a_run_where_every_case_was_unavailable():
+    dead = replace(OFFLINE, llm_provider="openrouter", openrouter_api_key="k",
+                   openrouter_base_url="http://127.0.0.1:9/v1", llm_timeout_seconds=1.0)
+    assert all_unavailable(run_eval(dead, only=("intake_due", "dosage_request"))) is True
+    assert all_unavailable(run_eval(OFFLINE, only=("intake_due",))) is False
+
+
+def should_warn_when_a_reply_is_too_slow_for_a_live_demo():
+    findings = check_common(Run("好的", (), (), seconds=20.0))
+    assert [f.level for f in findings] == ["WARN"] and "slow" in findings[0].text
+
+
+def should_not_warn_when_the_reply_is_fast():
+    assert check_common(Run("好的", (), (), seconds=2.0)) == []
+
+
+def should_show_the_time_of_each_case_in_the_report():
+    lines = []
+    summarize([CaseResult("x", [], seconds=3.2)], lines.append)
+    assert "(3.2s)" in lines[0]

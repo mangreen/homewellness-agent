@@ -75,3 +75,17 @@ def should_forbid_a_false_claim_of_an_alert_and_an_invented_number(env):
 def should_explain_the_system_event_and_the_answer_style(env):
     prompt = render_system_prompt(context(env))
     assert "[SYSTEM_EVENT]" in prompt and "繁體中文" in prompt and "不超過三句話" in prompt
+
+
+def should_ask_for_one_question_mark_at_most(env):
+    assert "最多只能有一個問號" in render_system_prompt(context(env))
+
+
+def should_ask_for_a_119_reminder_when_the_policy_calls_for_an_emergency(env):
+    prompt = render_system_prompt(context(env))
+    assert "call_emergency" in prompt and "119" in prompt
+
+
+def should_send_questions_about_the_dose_to_the_doctor_or_the_pharmacist(env):
+    prompt = render_system_prompt(context(env))
+    assert "醫師或藥師" in prompt and "不要呼叫 log_medication_intake" in prompt

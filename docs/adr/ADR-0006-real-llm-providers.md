@@ -42,6 +42,8 @@ A real model talks freely, can fail, and sends data to a third party. The safety
 ## Verification
 481 unit tests pass. A fake OpenAI-compatible server drives the whole tool loop for OpenAI and OpenRouter (URL, key header, body, tools).
 A real call to the Anthropic endpoint with an invalid key gave an authentication error, the fallback answered in about 3 seconds, and no key was logged.
-Not verified: a successful call with a real key. The user runs `make llm-eval` with a key and a network.
+The user ran `make llm-eval` with OpenRouter and the free Nemotron model on 2026-10-30. The first run failed in every case (timeout at 30 seconds).
+After the timeout was raised to 60 seconds, nine cases ran without a FAIL. Then the report got the cause, the time and a probe command.
+Not verified: Claude and OpenAI with a real key. The user runs `make llm-probe` and `make llm-eval` for each provider.
 
 Related: MEM-0006-real-llm-providers.md, ADR-0004-offline-agent-and-http-api.md

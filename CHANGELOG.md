@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Phase 6: `make llm-probe`, causes and times in the evaluation report, stricter prompt rules for real models, reason in the fallback event.
 - Phase 6: real LLM providers (Claude, OpenAI, OpenRouter) behind `LLM_PROVIDER`, offline fallback, `GET /demo/brain`, `make llm-eval`, `make brain`.
 - Phase 5: complete decision records (ADR and MEM), decision index, three error records, a test that keeps them linked.
 - Phase 4: Streamlit demo page, activity timeline, `POST /demo/reset`, `make uitest`, `make rehearse`, demo script.

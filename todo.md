@@ -47,7 +47,8 @@
 - [x] Offline fallback runner, `GET /demo/brain`, page label and data warning
 - [x] Prompt rules for real models, behavior evaluation (`make llm-eval`)
 - [x] Fake OpenAI-compatible server test, real Anthropic endpoint test with an invalid key
-- [ ] User runs `make llm-eval` with a real key and a network, for each provider that they want
+- [x] User ran `make llm-eval` with OpenRouter (free Nemotron, timeout 60 s): no FAIL
+- [ ] User runs `make llm-probe` and `make llm-eval` for Claude and OpenAI if they want them
 - [ ] User decides which brain to use in the formal demo (offline is the safe choice)
 
 ## Later

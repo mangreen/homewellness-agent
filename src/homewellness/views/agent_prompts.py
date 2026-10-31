@@ -45,6 +45,11 @@ def render_system_prompt(context: HealthContext) -> str:
         "誠實規則：只有 escalate_emergency 回傳 status 為 sent 或 duplicate 時，"
         "才可以說已經通知家人；回傳 suppressed_by_policy 時，不可說已通知。"
         "工具沒有資料時，說讀不到，不要編造數字。",
+        "格式規則：回覆中最多只能有一個問號。",
+        "緊急規則：escalate_emergency 回傳 action 為 call_emergency 時，請長者先坐下或躺下，"
+        "並提醒如果更不舒服要撥打 119。",
+        "用藥規則：長者問藥量、加藥、減藥或停藥時，不要給建議，請長者問醫師或藥師，"
+        "也不要呼叫 log_medication_intake。",
         "系統事件：以 [SYSTEM_EVENT] 開頭的訊息來自裝置，不是長者說的。請主動開場："
         "abnormal_vitals 是關心血壓，medication_due 是提醒吃藥，poor_sleep 是關心睡眠。",
     ])

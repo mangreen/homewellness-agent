@@ -142,4 +142,5 @@ def should_answer_with_the_offline_model_and_log_it_when_the_real_provider_canno
     container = build_container(settings, clock=FixedClock(taipei(15, 0)))
     reply = container.chat.reply(DEMO_ELDER_ID, "你好")
     assert "王奶奶" in reply  # The scripted model answered.
-    assert any(e.kind == "llm" for e in container.activity.recent(10))
+    events = [e.text for e in container.activity.recent(10) if e.kind == "llm"]
+    assert len(events) == 1 and "改用離線模型" in events[0] and "ConnectionError" in events[0]

@@ -13,6 +13,7 @@ from langchain_core.tools import tool
 from homewellness.interfaces import AgentActions, AgentRunner
 from homewellness.models.errors import AgentUnavailableError
 from homewellness.models.interaction import AgentRequest, Role
+from homewellness.services.llm_errors import explain_llm_error
 
 logger = logging.getLogger("homewellness.agent")
 
@@ -79,16 +80,27 @@ class LangChainAgentRunner:
             )
             content = result["messages"][-1].content
         except Exception as error:
-            # NOTE: Log the error type only. Messages can hold personal data.
-            logger.error("agent failed", extra={"event": "agent_failed",
-                                                "error_type": type(error).__name__})
-            raise AgentUnavailableError("the agent could not answer") from error
+            # NOTE: Log the error type and the status only. Messages can hold personal data.
+            logger.error("agent failed", extra={
+                "event": "agent_failed", "error_type": type(error).__name__,
+                "status_code": getattr(error, "status_code", None)})
+            raise AgentUnavailableError(
+                "the agent could not answer", detail=explain_llm_error(error)
+            ) from error
         text = content if isinstance(content, str) else "".join(
             block.get("text", "") for block in content if isinstance(block, dict)
         )
         if not text.strip():
             raise AgentUnavailableError("the agent returned an empty answer")
         return text
+
+
+def _short_reason(cause: BaseException | None) -> str:
+    """The error type and the HTTP status. Never the message: it can hold personal data."""
+    if cause is None:
+        return "unknown"
+    status = getattr(cause, "status_code", None)
+    return f"{type(cause).__name__}, HTTP {status}" if status else type(cause).__name__
 
 
 class FallbackAgentRunner:
@@ -102,7 +114,7 @@ class FallbackAgentRunner:
         self,
         primary: AgentRunner,
         backup: AgentRunner,
-        on_fallback: Callable[[], None] | None = None,
+        on_fallback: Callable[[str], None] | None = None,  # Gets a short reason.
     ) -> None:
         self._primary = primary
         self._backup = backup
@@ -112,8 +124,8 @@ class FallbackAgentRunner:
         try:
             return self._primary.reply(request)
         except AgentUnavailableError as error:
-            cause = type(error.__cause__).__name__
-            logger.warning("llm fallback", extra={"event": "llm_fallback", "error_type": cause})
+            reason = _short_reason(error.__cause__)
+            logger.warning("llm fallback", extra={"event": "llm_fallback", "reason": reason})
             if self._on_fallback is not None:
-                self._on_fallback()
+                self._on_fallback(reason)
             return self._backup.reply(request)

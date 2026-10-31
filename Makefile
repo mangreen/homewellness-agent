@@ -1,5 +1,5 @@
 # All Python work runs in Docker. The host needs only Docker and git.
-.PHONY: up down ps logs test itest uitest rehearse open brain llm-eval lint sim say alerts demo-cli openapi demo-reset offline-bundle
+.PHONY: up down ps logs test itest uitest rehearse open brain llm-probe llm-eval lint sim say alerts demo-cli openapi demo-reset offline-bundle
 
 up:
 	test -f .env || cp .env.example .env
@@ -70,6 +70,12 @@ open:
 # Which brain answers now (the offline model or a real LLM). It never shows a key.
 brain:
 	curl -s http://localhost:8001/demo/brain; echo
+
+# Two small calls: is the key, the network and the model fine, and can the model call tools?
+llm-probe:
+	test -f .env || cp .env.example .env
+	docker compose build app
+	docker compose run --rm --no-deps app python -m homewellness.llm_eval --probe
 
 # Check the behavior of the configured brain with fixed cases. A real provider needs a key and a network.
 llm-eval:

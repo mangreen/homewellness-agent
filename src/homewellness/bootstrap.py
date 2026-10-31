@@ -142,7 +142,8 @@ def build_container(
     if brain.external and brain.fallback:
         agent = FallbackAgentRunner(
             agent, LangChainAgentRunner(ScriptedChatModel(), actions),
-            on_fallback=lambda: activity.add("llm", "外部 LLM 暫時無法使用，改用離線模型"),
+            on_fallback=lambda reason: activity.add(
+                "llm", f"外部 LLM 暫時無法使用（{reason}），改用離線模型"),
         )
     chat = ChatController(
         elders=elders, telemetry=telemetry_store, intakes=intakes, conversations=conversations,
